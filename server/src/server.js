@@ -10,15 +10,25 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-  origin: 'https://pg-assignment-frontend-qwbpkabc3-luckybhai2006s-projects.vercel.app',
+  origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,  // ADD THIS LINE
-  optionsSuccessStatus: 200  // ADD THIS LINE
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200,
 }));
 
-app.options('*', cors());
+app.options('*', cors({ origin: true, credentials: true }));
 app.use(express.json());
+
+// Ensure MongoDB is connected for serverless invocations (Vercel)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error('DB connection error in middleware:', err);
+  }
+  next();
+});
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
