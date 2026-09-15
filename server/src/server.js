@@ -13,7 +13,6 @@ app.use(cors({
   origin: 'https://pg-assignment-frontend-qwbpkabc3-luckybhai2006s-projects.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
 }));
 
 app.options('*', cors());
