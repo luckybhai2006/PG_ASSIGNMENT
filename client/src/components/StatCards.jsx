@@ -92,14 +92,14 @@ export default function StatCards({ stats, onFilterStatus, activeStatus }) {
               onClick={() => onFilterStatus && onFilterStatus(item.status)}
               className={item.isHero ? 'hero-stat-card' : ''}
               style={{
-                background: '#ffffff',
+                background: 'var(--bg-card, #ffffff)',
                 borderRadius: '14px',
                 padding: '12px 14px',
                 border: '1px solid',
-                borderColor: isActive ? item.color : '#e2e8f0',
+                borderColor: isActive ? item.color : 'var(--border-light, #e2e8f0)',
                 boxShadow: isActive
                   ? `0 6px 18px -4px ${item.color}25, 0 0 0 2px ${item.color}`
-                  : '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+                  : 'var(--shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.05))',
                 cursor: onFilterStatus ? 'pointer' : 'default',
                 transform: isActive ? 'translateY(-1px)' : 'none',
                 transition: 'all 0.15s ease',
@@ -121,7 +121,7 @@ export default function StatCards({ stats, onFilterStatus, activeStatus }) {
               }} />
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted, #64748b)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                   {item.label}
                 </span>
                 <div style={{
@@ -142,7 +142,7 @@ export default function StatCards({ stats, onFilterStatus, activeStatus }) {
               <div style={{
                 fontSize: item.isHero ? '1.8rem' : '1.5rem',
                 fontWeight: 800,
-                color: '#0f172a',
+                color: 'var(--text-main, #0f172a)',
                 letterSpacing: '-0.03em',
                 margin: '3px 0 1px',
                 lineHeight: 1.1,

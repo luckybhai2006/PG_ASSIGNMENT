@@ -87,6 +87,7 @@ export default function Dashboard() {
   }, [fetchData]);
 
   const handleRefresh = () => {
+    if (isRefreshing) return;
     setIsRefreshing(true);
     fetchData();
   };
@@ -114,7 +115,7 @@ export default function Dashboard() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#f8fafc',
+      background: 'var(--bg-main, #f8fafc)',
       paddingBottom: '60px',
       width: '100%',
       maxWidth: '100vw',
@@ -152,14 +153,14 @@ export default function Dashboard() {
               <span style={{
                 fontSize: '0.72rem',
                 fontWeight: 700,
-                color: '#4f46e5',
-                background: '#eef2ff',
+                color: 'var(--primary, #4f46e5)',
+                background: 'var(--primary-light, #eef2ff)',
                 padding: '2px 8px',
                 borderRadius: '6px',
               }}>
                 {isStaff ? 'Operations Hub' : 'Resident Portal'}
               </span>
-              <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted, #64748b)' }}>
                 • {pg?.name || 'Green Heights Premium PG'}
               </span>
             </div>
@@ -167,14 +168,14 @@ export default function Dashboard() {
             <h1 style={{
               fontSize: '1.4rem',
               fontWeight: 800,
-              color: '#0f172a',
+              color: 'var(--text-main, #0f172a)',
               letterSpacing: '-0.02em',
               marginTop: '4px',
               wordBreak: 'break-word',
             }}>
               {getGreeting()}, {user?.name?.split(' ')[0]} 👋
             </h1>
-            <p style={{ color: '#64748b', fontSize: '0.82rem', marginTop: '2px' }}>
+            <p style={{ color: 'var(--text-muted, #64748b)', fontSize: '0.82rem', marginTop: '2px' }}>
               {isStaff
                 ? 'Manage resident complaints and facility workflows.'
                 : 'Raise room issues and track live resolution status.'}
@@ -254,9 +255,9 @@ export default function Dashboard() {
 
         {/* Filter & Search Box */}
         <div style={{
-          background: '#ffffff',
+          background: 'var(--bg-card, #ffffff)',
           borderRadius: '14px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-light, #e2e8f0)',
           boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
           padding: '14px',
           marginBottom: '16px',
@@ -275,7 +276,7 @@ export default function Dashboard() {
           }}>
             <div style={{
               display: 'flex',
-              background: '#f1f5f9',
+              background: 'var(--bg-hover, #f1f5f9)',
               padding: '3px',
               borderRadius: '10px',
               gap: '3px',
@@ -307,9 +308,9 @@ export default function Dashboard() {
                       borderRadius: '8px',
                       fontSize: '0.78rem',
                       fontWeight: 700,
-                      background: isActive ? '#ffffff' : 'transparent',
-                      color: isActive ? '#0f172a' : '#64748b',
-                      boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.06)' : 'none',
+                      background: isActive ? 'var(--bg-card, #ffffff)' : 'transparent',
+                      color: isActive ? 'var(--text-main, #0f172a)' : 'var(--text-muted, #64748b)',
+                      boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
                       whiteSpace: 'nowrap',
                       flexShrink: 0,
                     }}
@@ -317,8 +318,8 @@ export default function Dashboard() {
                     <span>{tab.label}</span>
                     {count !== null && (
                       <span style={{
-                        background: isActive ? '#eef2ff' : '#e2e8f0',
-                        color: isActive ? '#4f46e5' : '#64748b',
+                        background: isActive ? 'var(--primary-light, #eef2ff)' : 'var(--bg-hover, #e2e8f0)',
+                        color: isActive ? 'var(--primary, #4f46e5)' : 'var(--text-muted, #64748b)',
                         fontSize: '0.68rem',
                         fontWeight: 800,
                         padding: '1px 5px',
@@ -383,7 +384,7 @@ export default function Dashboard() {
             {/* Dropdown Filters */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: 'auto' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>Category:</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #64748b)' }}>Category:</span>
                 <select
                   className="form-select"
                   style={{ height: '36px', padding: '0 8px', fontSize: '0.78rem', width: 'auto' }}
@@ -397,7 +398,7 @@ export default function Dashboard() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>Priority:</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #64748b)' }}>Priority:</span>
                 <select
                   className="form-select"
                   style={{ height: '36px', padding: '0 8px', fontSize: '0.78rem', width: 'auto' }}
@@ -418,20 +419,20 @@ export default function Dashboard() {
           <div style={{
             textAlign: 'center',
             padding: '50px 0',
-            background: '#ffffff',
+            background: 'var(--bg-card, #ffffff)',
             borderRadius: '14px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-light, #e2e8f0)',
           }}>
             <div style={{
               width: '32px',
               height: '32px',
-              border: '3px solid #e2e8f0',
+              border: '3px solid var(--border-light, #e2e8f0)',
               borderTopColor: '#4f46e5',
               borderRadius: '50%',
               margin: '0 auto 12px',
               animation: 'spin 0.8s linear infinite',
             }} />
-            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>
+            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>
               Loading complaints...
             </div>
           </div>
@@ -439,16 +440,16 @@ export default function Dashboard() {
           <div style={{
             textAlign: 'center',
             padding: '40px 16px',
-            background: '#ffffff',
+            background: 'var(--bg-card, #ffffff)',
             borderRadius: '14px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-light, #e2e8f0)',
           }}>
             <div style={{
               width: '48px',
               height: '48px',
               borderRadius: '14px',
-              background: '#f1f5f9',
-              color: '#94a3b8',
+              background: 'var(--bg-hover, #f1f5f9)',
+              color: 'var(--text-light, #94a3b8)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -456,10 +457,10 @@ export default function Dashboard() {
             }}>
               <Inbox size={24} />
             </div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
               No Complaints Found
             </h3>
-            <p style={{ color: '#64748b', fontSize: '0.82rem', maxWidth: '380px', margin: '6px auto 16px', lineHeight: 1.5 }}>
+            <p style={{ color: 'var(--text-muted, #64748b)', fontSize: '0.82rem', maxWidth: '380px', margin: '6px auto 16px', lineHeight: 1.5 }}>
               {searchQuery || selectedCategory !== 'All' || selectedStatus !== 'All' || selectedPriority !== 'All'
                 ? 'No tickets match your filter criteria.'
                 : 'All PG amenities are running smoothly without issues!'}
@@ -482,8 +483,8 @@ export default function Dashboard() {
               marginBottom: '12px',
               padding: '0 2px',
             }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#475569' }}>
-                Showing <strong style={{ color: '#0f172a' }}>{complaints.length}</strong> complaints
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted, #475569)' }}>
+                Showing <strong style={{ color: 'var(--text-main, #0f172a)' }}>{complaints.length}</strong> complaints
               </span>
             </div>
 

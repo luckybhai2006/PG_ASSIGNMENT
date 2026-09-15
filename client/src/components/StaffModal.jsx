@@ -63,14 +63,14 @@ export default function StaffModal({ isOpen, onClose }) {
           borderBottom: '1px solid var(--border-light)',
         }}>
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
               Staff Management (Editors)
             </h2>
-            <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted, #64748b)' }}>
               Add editors who can manage complaints and tenants on your behalf
             </p>
           </div>
-          <button onClick={onClose} style={{ color: '#94a3b8' }}>
+          <button onClick={onClose} style={{ color: 'var(--text-light, #94a3b8)' }}>
             <X size={20} />
           </button>
         </div>
@@ -106,13 +106,13 @@ export default function StaffModal({ isOpen, onClose }) {
 
           {/* Invite Form */}
           <form onSubmit={handleInvite} style={{
-            background: '#f8fafc',
+            background: 'var(--bg-hover, #f8fafc)',
             padding: '18px',
             borderRadius: '12px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-light, #e2e8f0)',
             marginBottom: '24px',
           }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '14px', color: '#0f172a' }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '14px', color: 'var(--text-main, #0f172a)' }}>
               Invite New Staff Editor
             </h3>
 
@@ -182,12 +182,12 @@ export default function StaffModal({ isOpen, onClose }) {
 
           {/* Current Staff List */}
           <div>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '12px', color: '#0f172a' }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '12px', color: 'var(--text-main, #0f172a)' }}>
               Appointed Staff Team ({staffList.length})
             </h3>
 
             {staffList.length === 0 ? (
-              <p style={{ fontSize: '0.88rem', color: '#64748b', textAlign: 'center', padding: '16px' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted, #64748b)', textAlign: 'center', padding: '16px' }}>
                 No staff editors added yet.
               </p>
             ) : (
@@ -200,16 +200,16 @@ export default function StaffModal({ isOpen, onClose }) {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '12px 14px',
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
+                      background: 'var(--bg-card, #ffffff)',
+                      border: '1px solid var(--border-light, #e2e8f0)',
                       borderRadius: '10px',
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main, #0f172a)' }}>
                         {st.name}
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #64748b)' }}>
                         {st.email} {st.phone && `• ${st.phone}`}
                       </div>
                     </div>

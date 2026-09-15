@@ -1,6 +1,9 @@
-# 🏢 PG Complaint Management System (StayResolved)
-
-A full-stack, role-based complaint and facility management web application designed for PG/Hostel owners, staff editors, and residents. Built using the **MERN** stack (MongoDB, Express.js, React, Node.js) with Vite, JWT authentication, and responsive design.
+<div align="center">
+  <img src="client/public/logo.png" alt="PG Management System Logo" width="120" style="border-radius: 50%;" />
+  <h1>🏠 PG Management System</h1>
+  <p><strong>Stay Organized • Live Better</strong></p>
+  <p>A full-stack, role-based complaint and facility management web application designed for PG/Hostel owners, staff editors, and residents. Built using the <strong>MERN</strong> stack (MongoDB, Express.js, React, Node.js) with Vite, JWT authentication, and responsive design.</p>
+</div>
 
 ---
 

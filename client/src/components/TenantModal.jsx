@@ -80,14 +80,14 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded }) {
           borderBottom: '1px solid var(--border-light)',
         }}>
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
               Tenant Management
             </h2>
-            <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted, #64748b)' }}>
               Register new tenants and view current room allocations
             </p>
           </div>
-          <button onClick={onClose} style={{ color: '#94a3b8' }}>
+          <button onClick={onClose} style={{ color: 'var(--text-light, #94a3b8)' }}>
             <X size={20} />
           </button>
         </div>
@@ -123,13 +123,13 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded }) {
 
           {/* Add Tenant Form */}
           <form onSubmit={handleAddTenant} style={{
-            background: '#f8fafc',
+            background: 'var(--bg-hover, #f8fafc)',
             padding: '18px',
             borderRadius: '12px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-light, #e2e8f0)',
             marginBottom: '24px',
           }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '14px', color: '#0f172a' }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '14px', color: 'var(--text-main, #0f172a)' }}>
               Enroll New Tenant
             </h3>
 
@@ -208,12 +208,12 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded }) {
           {/* Tenants Directory List */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>
                 Registered Tenants ({tenants.length})
               </h3>
 
               <div style={{ position: 'relative', width: '200px' }}>
-                <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+                <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: 'var(--text-light, #94a3b8)' }} />
                 <input
                   type="text"
                   className="form-input"
@@ -226,7 +226,7 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded }) {
             </div>
 
             {tenants.length === 0 ? (
-              <p style={{ fontSize: '0.88rem', color: '#64748b', textAlign: 'center', padding: '16px' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted, #64748b)', textAlign: 'center', padding: '16px' }}>
                 No tenants found.
               </p>
             ) : (
@@ -239,16 +239,16 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded }) {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '10px 14px',
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
+                      background: 'var(--bg-card, #ffffff)',
+                      border: '1px solid var(--border-light, #e2e8f0)',
                       borderRadius: '8px',
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main, #0f172a)' }}>
                         {t.name}
                       </div>
-                      <div style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', gap: '10px' }}>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted, #64748b)', display: 'flex', gap: '10px' }}>
                         <span><Mail size={11} style={{ verticalAlign: 'middle' }} /> {t.email}</span>
                         {t.phone && <span><Phone size={11} style={{ verticalAlign: 'middle' }} /> {t.phone}</span>}
                       </div>

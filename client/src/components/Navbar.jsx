@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import {
   Building2,
   LogOut,
@@ -7,10 +8,13 @@ import {
   FileText,
   Settings,
   ChevronDown,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
   const { user, pg, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -42,8 +46,8 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
 
   return (
     <header style={{
-      background: '#ffffff',
-      borderBottom: '1px solid #e2e8f0',
+      background: 'var(--bg-card, #ffffff)',
+      borderBottom: '1px solid var(--border-light, #e2e8f0)',
       position: 'sticky',
       top: 0,
       zIndex: 100,
@@ -70,26 +74,26 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
           minWidth: 0,
           flexShrink: 1,
         }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '9px',
-            background: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            flexShrink: 0,
-            boxShadow: '0 2px 6px rgba(79, 70, 229, 0.25)',
-          }}>
-            <Building2 size={18} />
-          </div>
+          <img
+            src="/logo.png"
+            alt="PG Management System"
+            style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '50%',
+              objectFit: 'cover',
+              flexShrink: 0,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+              border: '1.5px solid var(--border-light, #e2e8f0)',
+              background: 'var(--bg-card, #ffffff)',
+            }}
+          />
 
           <div style={{ minWidth: 0 }}>
             <div style={{
               fontSize: '0.92rem',
               fontWeight: 800,
-              color: '#0f172a',
+              color: 'var(--text-main, #0f172a)',
               letterSpacing: '-0.02em',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -97,11 +101,11 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
               maxWidth: '160px',
               lineHeight: 1.2,
             }}>
-              {pg?.name || 'StayResolved'}
+              {pg?.name || 'PG Management'}
             </div>
             <div style={{
               fontSize: '0.7rem',
-              color: '#64748b',
+              color: 'var(--text-muted, #64748b)',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -120,6 +124,21 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
           gap: '8px',
           flexShrink: 0,
         }}>
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            className="theme-toggle-btn"
+            style={{ width: '34px', height: '34px', borderRadius: '9px' }}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label="Toggle Theme"
+          >
+            {theme === 'dark' ? (
+              <Sun size={16} color="#fbbf24" />
+            ) : (
+              <Moon size={16} color="#6366f1" />
+            )}
+          </button>
+
           {/* Notice Bell */}
           <button
             onClick={onOpenNotices}
@@ -128,12 +147,12 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
               width: '34px',
               height: '34px',
               borderRadius: '9px',
-              border: '1px solid #e2e8f0',
-              background: '#f8fafc',
+              border: '1px solid var(--border-light, #e2e8f0)',
+              background: 'var(--bg-hover, #f8fafc)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#4f46e5',
+              color: 'var(--primary, #4f46e5)',
             }}
             title="Notice Board"
           >
@@ -187,8 +206,8 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
                 alignItems: 'center',
                 gap: '6px',
                 padding: '3px 6px',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
+                background: 'var(--bg-hover, #f8fafc)',
+                border: '1px solid var(--border-light, #e2e8f0)',
                 borderRadius: '999px',
                 height: '34px',
               }}
@@ -210,7 +229,7 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
               </div>
 
               {/* Desktop Name & Role Badge */}
-              <span className="hide-on-mobile" style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>
+              <span className="hide-on-mobile" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>
                 {user?.name?.split(' ')[0]}
               </span>
 
@@ -218,7 +237,7 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
                 {roleInfo.text}
               </span>
 
-              <ChevronDown size={13} color="#64748b" />
+              <ChevronDown size={13} color="var(--text-muted, #64748b)" />
             </button>
 
             {/* Dropdown Menu */}
@@ -228,10 +247,10 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
                 right: 0,
                 top: '40px',
                 width: '210px',
-                background: '#ffffff',
+                background: 'var(--bg-card, #ffffff)',
                 borderRadius: '14px',
-                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15)',
-                border: '1px solid #e2e8f0',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.25)',
+                border: '1px solid var(--border-light, #e2e8f0)',
                 padding: '8px',
                 zIndex: 150,
                 boxSizing: 'border-box',
@@ -239,13 +258,13 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
                 {/* User Header */}
                 <div style={{
                   padding: '6px 8px 8px',
-                  borderBottom: '1px solid #f1f5f9',
+                  borderBottom: '1px solid var(--border-light, #f1f5f9)',
                   marginBottom: '4px',
                 }}>
-                  <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--text-main, #0f172a)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {user?.name}
                   </div>
-                  <div style={{ fontSize: '0.72rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #64748b)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {user?.email}
                   </div>
                   <div style={{ marginTop: '4px' }}>
@@ -265,13 +284,13 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
                     padding: '8px',
                     borderRadius: '7px',
                     fontSize: '0.82rem',
-                    color: '#334155',
+                    color: 'var(--text-main, #334155)',
                     textAlign: 'left',
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover, #f8fafc)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
-                  <FileText size={15} color="#64748b" />
+                  <FileText size={15} color="var(--text-muted, #64748b)" />
                   <span>PG Rules & Contact</span>
                 </button>
 
@@ -286,18 +305,18 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
                       padding: '8px',
                       borderRadius: '7px',
                       fontSize: '0.82rem',
-                      color: '#334155',
+                      color: 'var(--text-main, #334155)',
                       textAlign: 'left',
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover, #f8fafc)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
-                    <Settings size={15} color="#64748b" />
+                    <Settings size={15} color="var(--text-muted, #64748b)" />
                     <span>Edit PG Profile</span>
                   </button>
                 )}
 
-                <div style={{ borderTop: '1px solid #f1f5f9', marginTop: '4px', paddingTop: '4px' }}>
+                <div style={{ borderTop: '1px solid var(--border-light, #f1f5f9)', marginTop: '4px', paddingTop: '4px' }}>
                   <button
                     onClick={() => { logout(); setDropdownOpen(false); }}
                     style={{
@@ -311,7 +330,7 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
                       color: '#ef4444',
                       textAlign: 'left',
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--danger-light, #fef2f2)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
                     <LogOut size={15} color="#ef4444" />

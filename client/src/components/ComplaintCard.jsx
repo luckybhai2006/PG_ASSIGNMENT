@@ -114,10 +114,10 @@ export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
 
   return (
     <div style={{
-      background: '#ffffff',
+      background: 'var(--bg-card, #ffffff)',
       borderRadius: '14px',
-      border: '1px solid #e2e8f0',
-      boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+      border: '1px solid var(--border-light, #e2e8f0)',
+      boxShadow: 'var(--shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.05))',
       marginBottom: '14px',
       position: 'relative',
       overflow: 'hidden',
@@ -151,8 +151,8 @@ export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
               fontFamily: 'monospace',
               fontSize: '0.72rem',
               fontWeight: 800,
-              color: '#475569',
-              background: '#f1f5f9',
+              color: 'var(--text-muted, #475569)',
+              background: 'var(--bg-hover, #f1f5f9)',
               padding: '2px 6px',
               borderRadius: '5px',
             }}>
@@ -164,14 +164,14 @@ export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
               alignItems: 'center',
               gap: '4px',
               padding: '2px 7px',
-              background: '#ffffff',
-              border: '1px solid #e2e8f0',
+              background: 'var(--bg-card, #ffffff)',
+              border: '1px solid var(--border-light, #e2e8f0)',
               borderRadius: '5px',
               fontSize: '0.74rem',
               fontWeight: 700,
-              color: '#0f172a',
+              color: 'var(--text-main, #0f172a)',
             }}>
-              <Home size={11} color="#4f46e5" />
+              <Home size={11} color="var(--primary, #4f46e5)" />
               Rm {complaint.roomNumber}
             </span>
 
@@ -247,7 +247,7 @@ export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
         <h3 style={{
           fontSize: '1.05rem',
           fontWeight: 800,
-          color: '#0f172a',
+          color: 'var(--text-main, #0f172a)',
           letterSpacing: '-0.01em',
           margin: '4px 0 6px',
           lineHeight: 1.35,
@@ -258,13 +258,13 @@ export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
 
         {/* Description Body */}
         <p style={{
-          color: '#475569',
+          color: 'var(--text-muted, #475569)',
           fontSize: '0.88rem',
           lineHeight: 1.5,
-          background: '#f8fafc',
+          background: 'var(--bg-hover, #f8fafc)',
           padding: '10px 12px',
           borderRadius: '8px',
-          border: '1px solid #f1f5f9',
+          border: '1px solid var(--border-light, #f1f5f9)',
           margin: '6px 0 10px',
           wordBreak: 'break-word',
         }}>
@@ -300,21 +300,21 @@ export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
           justifyContent: 'space-between',
           marginTop: '10px',
           paddingTop: '10px',
-          borderTop: '1px solid #f1f5f9',
+          borderTop: '1px solid var(--border-light, #f1f5f9)',
           fontSize: '0.76rem',
-          color: '#64748b',
+          color: 'var(--text-muted, #64748b)',
           flexWrap: 'wrap',
           gap: '8px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ color: '#1e293b', fontWeight: 600 }}>
+            <span style={{ color: 'var(--text-main, #1e293b)', fontWeight: 600 }}>
               Tenant: <strong>{complaint.tenantId?.name || 'Tenant'}</strong>
             </span>
 
             {complaint.registeredByType === 'staff' && (
               <span style={{
-                background: '#f5f3ff',
-                color: '#7c3aed',
+                background: 'rgba(124, 58, 237, 0.15)',
+                color: '#a855f7',
                 padding: '1px 6px',
                 borderRadius: '5px',
                 fontWeight: 700,
@@ -324,7 +324,7 @@ export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
               </span>
             )}
 
-            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#94a3b8' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--text-light, #94a3b8)' }}>
               <Calendar size={12} />
               {new Date(complaint.createdAt).toLocaleDateString(undefined, {
                 month: 'short',
@@ -343,13 +343,13 @@ export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '3px',
-                color: '#4f46e5',
+                color: 'var(--primary, #4f46e5)',
                 fontSize: '0.76rem',
                 fontWeight: 700,
                 padding: '3px 6px',
                 borderRadius: '5px',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
+                background: 'var(--bg-hover, #f8fafc)',
+                border: '1px solid var(--border-light, #e2e8f0)',
               }}
             >
               <span>{showTimeline ? 'Hide' : `History (${complaint.timeline.length})`}</span>
@@ -363,15 +363,15 @@ export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
           <div style={{
             marginTop: '10px',
             padding: '12px',
-            background: '#f8fafc',
+            background: 'var(--bg-hover, #f8fafc)',
             borderRadius: '10px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-light, #e2e8f0)',
             animation: 'fadeIn 0.15s ease-out',
           }}>
             <h4 style={{
               fontSize: '0.72rem',
               fontWeight: 800,
-              color: '#475569',
+              color: 'var(--text-muted, #475569)',
               marginBottom: '10px',
               textTransform: 'uppercase',
               letterSpacing: '0.04em',

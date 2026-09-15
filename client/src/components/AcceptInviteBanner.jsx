@@ -24,36 +24,37 @@ export default function AcceptInviteBanner() {
       maxWidth: '680px',
       margin: '60px auto',
       padding: '36px',
-      background: 'white',
+      background: 'var(--bg-card, #ffffff)',
       borderRadius: '24px',
-      boxShadow: '0 20px 40px -15px rgba(79, 70, 229, 0.15)',
-      border: '1px solid #e0e7ff',
+      boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.25)',
+      border: '1px solid var(--border-light, #e0e7ff)',
       textAlign: 'center',
     }}>
-      <div style={{
-        width: '64px',
-        height: '64px',
-        borderRadius: '20px',
-        background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
-        color: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        margin: '0 auto 20px',
-        boxShadow: '0 10px 20px rgba(79, 70, 229, 0.25)',
-      }}>
-        <ShieldCheck size={32} />
-      </div>
+      <img
+        src="/logo.png"
+        alt="PG Management System"
+        style={{
+          width: '68px',
+          height: '68px',
+          borderRadius: '50%',
+          objectFit: 'cover',
+          margin: '0 auto 16px',
+          display: 'block',
+          boxShadow: '0 8px 20px rgba(0, 0, 0, 0.1)',
+          border: '2px solid var(--border-light, #e2e8f0)',
+          background: 'var(--bg-card, #ffffff)',
+        }}
+      />
 
       <span className="badge badge-role-editor" style={{ marginBottom: '12px' }}>
         Staff Invite Pending
       </span>
 
-      <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', marginTop: '10px' }}>
+      <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main, #0f172a)', marginTop: '10px' }}>
         Welcome, {user?.name}!
       </h2>
       
-      <p style={{ color: '#64748b', fontSize: '1rem', marginTop: '12px', lineHeight: 1.6 }}>
+      <p style={{ color: 'var(--text-muted, #64748b)', fontSize: '1rem', marginTop: '12px', lineHeight: 1.6 }}>
         You have been appointed as a <strong>Staff Editor</strong>.
         To access the PG account details, view complaints, and manage operations, please accept the staff invitation.
       </p>
@@ -99,11 +100,11 @@ export default function AcceptInviteBanner() {
       <div style={{
         marginTop: '28px',
         padding: '14px',
-        background: '#f8fafc',
+        background: 'var(--bg-hover, #f8fafc)',
         borderRadius: '12px',
         fontSize: '0.85rem',
-        color: '#64748b',
-        border: '1px dashed #cbd5e1',
+        color: 'var(--text-muted, #64748b)',
+        border: '1px dashed var(--border-light, #cbd5e1)',
       }}>
         ℹ️ <strong>Staff Privileges:</strong> Manage tenants, file complaints on tenants' behalf, and update complaint status resolution.
       </div>

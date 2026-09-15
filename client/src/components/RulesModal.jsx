@@ -31,15 +31,15 @@ export default function RulesModal({ isOpen, onClose }) {
               <ShieldCheck size={20} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
                 PG Rules & Information
               </h2>
-              <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted, #64748b)' }}>
                 {pg?.name || 'Resident Policy'}
               </p>
             </div>
           </div>
-          <button onClick={onClose} style={{ color: '#94a3b8' }}>
+          <button onClick={onClose} style={{ color: 'var(--text-light, #94a3b8)' }}>
             <X size={20} />
           </button>
         </div>
@@ -47,39 +47,39 @@ export default function RulesModal({ isOpen, onClose }) {
         <div style={{ padding: '24px' }}>
           {/* Contact Details */}
           <div style={{
-            background: '#f8fafc',
+            background: 'var(--bg-hover, #f8fafc)',
             padding: '16px',
             borderRadius: '12px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-light, #e2e8f0)',
             marginBottom: '20px',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155', fontSize: '0.9rem', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main, #334155)', fontSize: '0.9rem', marginBottom: '8px' }}>
               <MapPin size={16} color="#4f46e5" />
               <span><strong>Address:</strong> {pg?.address || 'N/A'}</span>
             </div>
             {pg?.contactPhone && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155', fontSize: '0.9rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main, #334155)', fontSize: '0.9rem' }}>
                 <Phone size={16} color="#059669" />
                 <span><strong>Helpline / Caretaker:</strong> {pg.contactPhone}</span>
               </div>
             )}
           </div>
 
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main, #0f172a)', marginBottom: '12px' }}>
             House Guidelines
           </h3>
 
           {pg?.rules && pg.rules.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {pg.rules.map((rule, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '0.9rem', color: '#334155' }}>
+                <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '0.9rem', color: 'var(--text-main, #334155)' }}>
                   <CheckCircle size={16} color="#10b981" style={{ marginTop: '3px', flexShrink: 0 }} />
                   <span>{rule}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>No specific rules defined yet.</p>
+            <p style={{ color: 'var(--text-muted, #64748b)', fontSize: '0.9rem' }}>No specific rules defined yet.</p>
           )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>

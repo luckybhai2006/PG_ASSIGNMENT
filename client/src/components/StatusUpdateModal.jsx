@@ -48,10 +48,10 @@ export default function StatusUpdateModal({ isOpen, onClose, complaint, onUpdate
           padding: '20px 24px',
           borderBottom: '1px solid var(--border-light)',
         }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
             Update Resolution Status
           </h2>
-          <button onClick={onClose} style={{ color: '#94a3b8' }}>
+          <button onClick={onClose} style={{ color: 'var(--text-light, #94a3b8)' }}>
             <X size={20} />
           </button>
         </div>
@@ -72,16 +72,16 @@ export default function StatusUpdateModal({ isOpen, onClose, complaint, onUpdate
           )}
 
           <div style={{
-            background: '#f8fafc',
+            background: 'var(--bg-hover, #f8fafc)',
             padding: '14px',
             borderRadius: '10px',
             marginBottom: '18px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-light, #e2e8f0)',
           }}>
-            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #64748b)', fontWeight: 600 }}>
               COMPLAINT #{complaint._id.slice(-6).toUpperCase()} • ROOM {complaint.roomNumber}
             </div>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginTop: '4px' }}>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main, #0f172a)', marginTop: '4px' }}>
               {complaint.title}
             </div>
           </div>

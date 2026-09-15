@@ -79,15 +79,15 @@ export default function PGProfileModal({ isOpen, onClose }) {
               <Building size={20} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
                 PG Account Profile
               </h2>
-              <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted, #64748b)' }}>
                 Exclusive Owner Configuration
               </p>
             </div>
           </div>
-          <button onClick={onClose} style={{ color: '#94a3b8' }}>
+          <button onClick={onClose} style={{ color: 'var(--text-light, #94a3b8)' }}>
             <X size={20} />
           </button>
         </div>

@@ -96,10 +96,10 @@ export default function ComplaintModal({ isOpen, onClose, onComplaintCreated, us
           padding: '20px 24px',
           borderBottom: '1px solid var(--border-light)',
         }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
             {isStaff ? 'Register Complaint (On Behalf of Tenant)' : 'Raise a Complaint'}
           </h2>
-          <button onClick={onClose} style={{ color: '#94a3b8' }}>
+          <button onClick={onClose} style={{ color: 'var(--text-light, #94a3b8)' }}>
             <X size={20} />
           </button>
         </div>

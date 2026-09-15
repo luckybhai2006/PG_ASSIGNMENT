@@ -68,15 +68,15 @@ export default function NoticeBoardModal({ isOpen, onClose }) {
               <Bell size={20} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
                 Notice Board & Announcements
               </h2>
-              <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted, #64748b)' }}>
                 Updates from {pg?.name || 'PG Management'}
               </p>
             </div>
           </div>
-          <button onClick={onClose} style={{ color: '#94a3b8' }}>
+          <button onClick={onClose} style={{ color: 'var(--text-light, #94a3b8)' }}>
             <X size={20} />
           </button>
         </div>
@@ -99,13 +99,13 @@ export default function NoticeBoardModal({ isOpen, onClose }) {
           {/* Form for Staff / Owner */}
           {canPostNotice && (
             <form onSubmit={handlePostNotice} style={{
-              background: '#f8fafc',
+              background: 'var(--bg-hover, #f8fafc)',
               padding: '16px',
               borderRadius: '12px',
-              border: '1px solid #e2e8f0',
+              border: '1px solid var(--border-light, #e2e8f0)',
               marginBottom: '20px',
             }}>
-              <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '12px', color: '#0f172a' }}>
+              <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '12px', color: 'var(--text-main, #0f172a)' }}>
                 Post New Announcement
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
@@ -155,7 +155,7 @@ export default function NoticeBoardModal({ isOpen, onClose }) {
           {/* Notices List */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {notices.length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#64748b', padding: '24px' }}>
+              <p style={{ textAlign: 'center', color: 'var(--text-muted, #64748b)', padding: '24px' }}>
                 No announcements at this time.
               </p>
             ) : (
@@ -166,14 +166,14 @@ export default function NoticeBoardModal({ isOpen, onClose }) {
                     padding: '16px',
                     borderRadius: '12px',
                     border: '1px solid',
-                    borderColor: n.priority === 'urgent' ? '#fecaca' : '#e2e8f0',
-                    background: n.priority === 'urgent' ? '#fff5f5' : '#ffffff',
+                    borderColor: n.priority === 'urgent' ? '#ef4444' : 'var(--border-light, #e2e8f0)',
+                    background: n.priority === 'urgent' ? 'var(--danger-light, #fef2f2)' : 'var(--bg-card, #ffffff)',
                     position: 'relative',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>
+                      <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>
                         {n.title}
                       </h4>
                       {n.priority === 'urgent' && (
@@ -186,7 +186,7 @@ export default function NoticeBoardModal({ isOpen, onClose }) {
                     {canPostNotice && (
                       <button
                         onClick={() => handleDeleteNotice(n._id)}
-                        style={{ color: '#94a3b8', padding: '4px' }}
+                        style={{ color: 'var(--text-light, #94a3b8)', padding: '4px' }}
                         title="Delete notice"
                       >
                         <Trash2 size={16} />
@@ -194,11 +194,11 @@ export default function NoticeBoardModal({ isOpen, onClose }) {
                     )}
                   </div>
 
-                  <p style={{ color: '#334155', fontSize: '0.9rem', marginTop: '8px', lineHeight: 1.5 }}>
+                  <p style={{ color: 'var(--text-main, #334155)', fontSize: '0.9rem', marginTop: '8px', lineHeight: 1.5 }}>
                     {n.message}
                   </p>
 
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '10px' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #94a3b8)', marginTop: '10px' }}>
                     Posted on {new Date(n.date).toLocaleDateString()} at{' '}
                     {new Date(n.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
