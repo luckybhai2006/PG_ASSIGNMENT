@@ -85,12 +85,7 @@ exports.registerOwner = async (req, res) => {
         pgId: owner.pgId,
         inviteStatus: owner.inviteStatus,
       },
-      pg: {
-        id: pg._id,
-        name: pg.name,
-        address: pg.address,
-        contactPhone: pg.contactPhone,
-      },
+      pg,
     });
   } catch (error) {
     console.error('Register Owner Error:', error);
@@ -158,14 +153,7 @@ exports.login = async (req, res) => {
         pgId: user.pgId,
         inviteStatus: user.inviteStatus,
       },
-      pg: pg
-        ? {
-          id: pg._id,
-          name: pg.name,
-          address: pg.address,
-          contactPhone: pg.contactPhone,
-        }
-        : null,
+      pg,
     });
   } catch (error) {
     console.error('Login Error:', error);
@@ -211,3 +199,99 @@ exports.getMe = async (req, res) => {
     });
   }
 };
+
+// @desc    Get all listed PGs (for student signup dropdown)
+// @route   GET /api/auth/pgs
+// @access  Public
+exports.getPublicPGs = async (req, res) => {
+  try {
+    const pgs = await PG.find({})
+      .select('name address contactPhone ownerId createdAt')
+      .populate('ownerId', 'name email phone')
+      .sort({ createdAt: -1 });
+
+    return res.json({
+      success: true,
+      count: pgs.length,
+      pgs,
+    });
+  } catch (error) {
+    console.error('Get Public PGs Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Server error fetching listed PGs',
+    });
+  }
+};
+
+// @desc    Register a new Student/Tenant for a selected PG
+// @route   POST /api/auth/register-tenant
+// @access  Public
+exports.registerTenant = async (req, res) => {
+  try {
+    const { name, email, password, roomNumber, phone, pgId } = req.body;
+
+    if (!name || !email || !password || !roomNumber || !pgId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide name, email, password, room number, and select a PG',
+      });
+    }
+
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this email already exists',
+      });
+    }
+
+    const pg = await PG.findById(pgId);
+    if (!pg) {
+      return res.status(404).json({
+        success: false,
+        message: 'Selected PG not found',
+      });
+    }
+
+    const tenant = new User({
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      password,
+      role: 'tenant',
+      roomNumber: roomNumber.trim(),
+      phone: phone ? phone.trim() : '',
+      pgId: pg._id,
+      invitedBy: pg.ownerId,
+      inviteStatus: 'accepted',
+    });
+
+    await tenant.save();
+
+    const token = generateToken(tenant._id);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Student registered successfully',
+      token,
+      user: {
+        id: tenant._id,
+        name: tenant.name,
+        email: tenant.email,
+        role: tenant.role,
+        roomNumber: tenant.roomNumber,
+        phone: tenant.phone,
+        pgId: tenant.pgId,
+        inviteStatus: tenant.inviteStatus,
+      },
+      pg,
+    });
+  } catch (error) {
+    console.error('Register Tenant Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Server error during student registration',
+    });
+  }
+};
+
