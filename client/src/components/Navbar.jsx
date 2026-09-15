@@ -90,28 +90,16 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
           />
 
           <div style={{ minWidth: 0 }}>
-            <div style={{
-              fontSize: '0.92rem',
-              fontWeight: 800,
-              color: 'var(--text-main, #0f172a)',
-              letterSpacing: '-0.02em',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: '160px',
-              lineHeight: 1.2,
-            }}>
+            <div
+              className="navbar-pg-name"
+              title={pg?.name || 'PG Management'}
+            >
               {pg?.name || 'PG Management'}
             </div>
-            <div style={{
-              fontSize: '0.7rem',
-              color: 'var(--text-muted, #64748b)',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: '160px',
-              lineHeight: 1.2,
-            }}>
+            <div
+              className="navbar-pg-address"
+              title={pg?.address || 'PG Portal'}
+            >
               {pg?.address ? pg.address.split(',')[0] : 'PG Portal'}
             </div>
           </div>
