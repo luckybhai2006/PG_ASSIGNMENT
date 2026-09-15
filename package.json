@@ -1,0 +1,13 @@
+{
+  "name": "pg-complaint-management-system",
+  "version": "1.0.0",
+  "description": "Full-stack PG Complaint Management System with 3 Roles (Owner, Editor, Tenant)",
+  "scripts": {
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "seed": "npm --prefix server run seed"
+  },
+  "keywords": ["pg", "complaint-system", "mern", "vite", "mongodb", "express", "react"],
+  "author": "",
+  "license": "ISC"
+}
