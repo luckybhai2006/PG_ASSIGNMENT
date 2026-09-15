@@ -45,26 +45,40 @@ app.use((req, res, next) => {
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error('Unhandled Server Error:', err);
+
   res.status(err.status || 500).json({
     success: false,
     message: err.message || 'Internal Server Error',
   });
 });
 
+// Local development server
 const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
-  const server = app.listen(PORT, () => {
-    console.log(`🚀 Server listening on http://localhost:${PORT}`);
-  });
+if (process.env.NODE_ENV !== 'production') {
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`🚀 Server listening on http://localhost:${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error('❌ Database connection failed:', err);
+      process.exit(1);
+    });
+}
 
-  server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.error(`\n⚠️  Port ${PORT} is already in use by an existing process.`);
-      console.error(`👉 Close any background server terminal or run: npx --yes kill-port ${PORT}\n`);
-    } else {
-      console.error('Server error:', err);
-    }
-  });
-});
+// Vercel serverless function
+module.exports = async (req, res) => {
+  try {
+    await connectDB();
+    return app(req, res);
+  } catch (error) {
+    console.error('❌ Database connection failed:', error);
 
+    return res.status(500).json({
+      success: false,
+      message: 'Database connection failed',
+    });
+  }
+};
