@@ -13,6 +13,8 @@ app.use(cors({
   origin: 'https://pg-assignment-frontend-qwbpkabc3-luckybhai2006s-projects.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,  // ADD THIS LINE
+  optionsSuccessStatus: 200  // ADD THIS LINE
 }));
 
 app.options('*', cors());
@@ -49,6 +51,7 @@ app.use((req, res, next) => {
 });
 
 // Global Error Handler
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error('Unhandled Server Error:', err);
 
@@ -74,17 +77,5 @@ if (process.env.NODE_ENV !== 'production') {
     });
 }
 
-// Vercel serverless function
-module.exports = async (req, res) => {
-  try {
-    await connectDB();
-    return app(req, res);
-  } catch (error) {
-    console.error('❌ Database connection failed:', error);
-
-    return res.status(500).json({
-      success: false,
-      message: 'Database connection failed',
-    });
-  }
-};
+// Vercel serverless function - SIMPLE
+module.exports = app;
