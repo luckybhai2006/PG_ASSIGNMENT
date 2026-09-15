@@ -22,12 +22,20 @@ app.use(express.json());
 
 // Ensure MongoDB is connected for serverless invocations (Vercel)
 app.use(async (req, res, next) => {
+  if (req.path === '/' || req.path === '/api/health') {
+    return next();
+  }
+
   try {
     await connectDB();
+    next();
   } catch (err) {
-    console.error('DB connection error in middleware:', err);
+    console.error('DB connection error in middleware:', err.message);
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Database connection error',
+    });
   }
-  next();
 });
 
 // Routes
