@@ -113,11 +113,11 @@ export default function TenantPendingBanner() {
         }}>
           {isRejected ? (
             <>
-              Your enrollment request for <strong>{pg?.name || 'this PG'}</strong> (Room {user?.roomNumber}) was not approved by the property owner. If you believe this is a mistake, please reach out to the PG warden or owner directly.
+              Your enrollment request for <strong>{pg?.name || 'this PG'}</strong> was not approved by the property owner. If you believe this is a mistake, please reach out to the PG warden or owner directly.
             </>
           ) : (
             <>
-              Your registration for <strong>{pg?.name || 'this PG'}</strong> (Room <strong>{user?.roomNumber}</strong>) has been submitted with the join code. For building security, the <strong>PG Owner</strong> must verify and approve your enrollment before you can access the portal.
+              Your registration for <strong>{pg?.name || 'this PG'}</strong> has been submitted. For building security, the <strong>PG Owner</strong> will allocate an available room and approve your enrollment before you can access the resident portal.
             </>
           )}
         </p>
@@ -146,8 +146,8 @@ export default function TenantPendingBanner() {
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #64748b)', textTransform: 'uppercase', fontWeight: 700 }}>
               Allotted Room
             </div>
-            <div style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-main, #0f172a)', marginTop: '2px' }}>
-              Room {user?.roomNumber || 'Pending'}
+            <div style={{ fontSize: '0.86rem', fontWeight: 700, color: user?.roomNumber && user.roomNumber !== 'Unassigned' ? 'var(--primary, #4f46e5)' : '#d97706', marginTop: '2px' }}>
+              {user?.roomNumber && user.roomNumber !== 'Unassigned' ? `Room ${user.roomNumber}` : '⏳ Awaiting Owner Allocation'}
             </div>
           </div>
         </div>

@@ -10,13 +10,35 @@ import {
   Sun,
   Moon,
   Users,
+  Building2,
+  Check,
+  Plus,
+  Loader2,
+  X,
+  ShieldCheck,
 } from 'lucide-react';
 
 export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tenantCount, onOpenTenants }) {
-  const { user, pg, logout } = useAuth();
+  const { user, pg, myPGs, logout, switchActivePG, addPGBranch } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Multi-branch state for PG Owners
+  const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
+  const branchDropdownRef = useRef(null);
+  const [branchModalOpen, setBranchModalOpen] = useState(false);
+  const [switchingBranchId, setSwitchingBranchId] = useState(null);
+  const [branchForm, setBranchForm] = useState({
+    name: '',
+    pgType: 'girls',
+    address: '',
+    contactPhone: '',
+    curfewTime: '09:30 PM',
+    wardenPhone: '',
+  });
+  const [branchLoading, setBranchLoading] = useState(false);
+  const [branchError, setBranchError] = useState('');
 
   const isOwner = user?.role === 'owner';
   const isStaff = isOwner || user?.role === 'editor';
@@ -27,10 +49,78 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
+      if (branchDropdownRef.current && !branchDropdownRef.current.contains(event.target)) {
+        setBranchDropdownOpen(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const getPgTypeBadge = (type) => {
+    if (type === 'girls') {
+      return {
+        label: '🌸 Girls PG',
+        bg: 'rgba(236, 72, 153, 0.12)',
+        color: '#db2777',
+        border: '1px solid rgba(236, 72, 153, 0.3)',
+      };
+    }
+    if (type === 'co-ed') {
+      return {
+        label: '👥 Co-Ed PG',
+        bg: 'rgba(139, 92, 246, 0.12)',
+        color: '#7c3aed',
+        border: '1px solid rgba(139, 92, 246, 0.3)',
+      };
+    }
+    return {
+      label: '🔷 Boys PG',
+      bg: 'rgba(59, 130, 246, 0.12)',
+      color: '#2563eb',
+      border: '1px solid rgba(59, 130, 246, 0.3)',
+    };
+  };
+
+  const handleSwitchBranch = async (targetPgId) => {
+    if (targetPgId === pg?._id || switchingBranchId) return;
+    setSwitchingBranchId(targetPgId);
+    try {
+      await switchActivePG(targetPgId);
+      setBranchDropdownOpen(false);
+    } catch (err) {
+      alert(err.message || 'Failed to switch PG branch');
+    } finally {
+      setSwitchingBranchId(null);
+    }
+  };
+
+  const handleCreateBranch = async (e) => {
+    e.preventDefault();
+    if (!branchForm.name.trim() || !branchForm.address.trim()) {
+      setBranchError('Please provide both PG branch name and address.');
+      return;
+    }
+    setBranchLoading(true);
+    setBranchError('');
+    try {
+      await addPGBranch(branchForm);
+      setBranchModalOpen(false);
+      setBranchDropdownOpen(false);
+      setBranchForm({
+        name: '',
+        pgType: 'girls',
+        address: '',
+        contactPhone: '',
+        curfewTime: '09:30 PM',
+        wardenPhone: '',
+      });
+    } catch (err) {
+      setBranchError(err.message || 'Failed to create new PG branch');
+    } finally {
+      setBranchLoading(false);
+    }
+  };
 
   const getRoleInfo = (role) => {
     switch (role) {
@@ -101,31 +191,190 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
               >
                 {pg?.name || 'PG Management'}
               </div>
-              {/* {isStaff && (
-                <button
-                  type="button"
-                  onClick={onOpenTenants}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    background: 'rgba(6, 182, 212, 0.12)',
-                    color: '#0891b2',
-                    border: '1px solid rgba(6, 182, 212, 0.25)',
-                    padding: '2px 8px',
-                    borderRadius: '16px',
-                    cursor: onOpenTenants ? 'pointer' : 'default',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.15s ease',
-                  }}
-                  title={`Total ${displayTenantCount} students enrolled in this PG (Click to view)`}
-                >
-                  <Users size={12} color="#0891b2" />
-                  <span>{displayTenantCount} Students</span>
-                </button>
-              )} */}
+
+              {/* PG Type Badge */}
+              {pg?.pgType && (() => {
+                const badge = getPgTypeBadge(pg.pgType);
+                return (
+                  <span
+                    style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: '12px',
+                      whiteSpace: 'nowrap',
+                      background: badge.bg,
+                      color: badge.color,
+                      border: badge.border,
+                    }}
+                  >
+                    {badge.label}
+                  </span>
+                );
+              })()}
+
+              {/* Branch Switcher for Owner */}
+              {isOwner && (
+                <div style={{ position: 'relative' }} ref={branchDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '2px 8px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-light, #e2e8f0)',
+                      background: 'var(--bg-hover, #f8fafc)',
+                      color: 'var(--primary, #4f46e5)',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                    title="Switch branch or add new PG branch"
+                  >
+                    <Building2 size={12} color="var(--primary, #4f46e5)" />
+                    <span>Branches ({myPGs?.length || 1})</span>
+                    <ChevronDown size={11} />
+                  </button>
+
+                  {/* Branch Switcher Dropdown */}
+                  {branchDropdownOpen && (
+                    <div style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: '28px',
+                      width: '280px',
+                      background: 'var(--bg-card, #ffffff)',
+                      borderRadius: '12px',
+                      boxShadow: '0 12px 28px -5px rgba(0, 0, 0, 0.25)',
+                      border: '1px solid var(--border-light, #e2e8f0)',
+                      padding: '8px',
+                      zIndex: 200,
+                      boxSizing: 'border-box',
+                    }}>
+                      <div style={{
+                        padding: '4px 6px 8px',
+                        borderBottom: '1px solid var(--border-light, #f1f5f9)',
+                        marginBottom: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted, #64748b)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          My PG Branches
+                        </span>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--primary, #4f46e5)' }}>
+                          {(myPGs?.length || 1)} Total
+                        </span>
+                      </div>
+
+                      <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                        {(myPGs && myPGs.length > 0 ? myPGs : (pg ? [pg] : [])).map((branch) => {
+                          const isActive = branch._id === pg?._id;
+                          const badge = getPgTypeBadge(branch.pgType);
+                          return (
+                            <div
+                              key={branch._id}
+                              onClick={() => handleSwitchBranch(branch._id)}
+                              style={{
+                                padding: '8px',
+                                borderRadius: '8px',
+                                cursor: isActive ? 'default' : 'pointer',
+                                background: isActive ? 'rgba(79, 70, 229, 0.08)' : 'transparent',
+                                border: isActive ? '1px solid rgba(79, 70, 229, 0.25)' : '1px solid transparent',
+                                marginBottom: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                transition: 'all 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isActive) e.currentTarget.style.background = 'var(--bg-hover, #f8fafc)';
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isActive) e.currentTarget.style.background = 'transparent';
+                              }}
+                            >
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{
+                                    fontWeight: 700,
+                                    fontSize: '0.82rem',
+                                    color: isActive ? 'var(--primary, #4f46e5)' : 'var(--text-main, #0f172a)',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                  }}>
+                                    {branch.name}
+                                  </span>
+                                  {isActive && <Check size={13} color="#4f46e5" strokeWidth={3} />}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                                  <span style={{
+                                    fontSize: '0.62rem',
+                                    fontWeight: 700,
+                                    padding: '1px 5px',
+                                    borderRadius: '6px',
+                                    background: badge.bg,
+                                    color: badge.color,
+                                    border: badge.border,
+                                  }}>
+                                    {badge.label}
+                                  </span>
+                                  <span style={{
+                                    fontSize: '0.68rem',
+                                    color: 'var(--text-muted, #64748b)',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                  }}>
+                                    {branch.address ? branch.address.split(',')[0] : ''}
+                                  </span>
+                                </div>
+                              </div>
+                              {switchingBranchId === branch._id && (
+                                <Loader2 size={14} className="animate-spin" color="#4f46e5" />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div style={{ borderTop: '1px solid var(--border-light, #f1f5f9)', marginTop: '6px', paddingTop: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBranchDropdownOpen(false);
+                            setBranchModalOpen(true);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '7px 10px',
+                            borderRadius: '8px',
+                            border: '1px dashed var(--primary, #4f46e5)',
+                            background: 'rgba(79, 70, 229, 0.04)',
+                            color: 'var(--primary, #4f46e5)',
+                            fontWeight: 700,
+                            fontSize: '0.78rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <Plus size={14} />
+                          <span>Add New PG Branch</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div
               className="navbar-pg-address"
@@ -406,7 +655,147 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
           </button>
         </div>
       </div>
-    </header>
 
+      {/* Add New Branch Modal for PG Owners */}
+      {branchModalOpen && (
+        <div className="modal-backdrop" onClick={() => setBranchModalOpen(false)}>
+          <div className="modal-content" style={{ maxWidth: '480px' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 20px',
+              borderBottom: '1px solid var(--border-light)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Building2 size={18} color="var(--primary, #4f46e5)" />
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, color: 'var(--text-main, #0f172a)' }}>
+                  Add New PG Branch
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBranchModalOpen(false)}
+                style={{ color: 'var(--text-light, #94a3b8)', background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateBranch} style={{ padding: '20px' }}>
+              {branchError && (
+                <div style={{
+                  padding: '10px',
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  color: '#b91c1c',
+                  fontSize: '0.82rem',
+                  marginBottom: '14px',
+                }}>
+                  {branchError}
+                </div>
+              )}
+
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Branch Facility Category *</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                  {[
+                    { id: 'girls', label: '👧 Girls PG', color: '#ec4899', bg: 'rgba(236, 72, 153, 0.08)' },
+                    { id: 'boys', label: '👦 Boys PG', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.08)' },
+                    { id: 'co-ed', label: '👥 Co-Ed PG', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.08)' },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setBranchForm((prev) => ({ ...prev, pgType: t.id }))}
+                      style={{
+                        padding: '8px 4px',
+                        borderRadius: '8px',
+                        border: branchForm.pgType === t.id ? `2px solid ${t.color}` : '1.5px solid var(--border-light, #e2e8f0)',
+                        background: branchForm.pgType === t.id ? t.bg : 'var(--bg-card, #ffffff)',
+                        color: branchForm.pgType === t.id ? t.color : 'var(--text-muted, #64748b)',
+                        fontWeight: branchForm.pgType === t.id ? 700 : 500,
+                        fontSize: '0.78rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>PG Branch Name *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. Sunrise Girls Hostel (Branch 2)"
+                  value={branchForm.name}
+                  onChange={(e) => setBranchForm({ ...branchForm, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Physical Address *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. Sector 14, Opposite Metro Station"
+                  value={branchForm.address}
+                  onChange={(e) => setBranchForm({ ...branchForm, address: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                <div className="form-group">
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Curfew / Gate Closing</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. 09:30 PM"
+                    value={branchForm.curfewTime}
+                    onChange={(e) => setBranchForm({ ...branchForm, curfewTime: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Warden / Caretaker Phone</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. +91 9876543210"
+                    value={branchForm.wardenPhone}
+                    onChange={(e) => setBranchForm({ ...branchForm, wardenPhone: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '18px' }}>
+                <button
+                  type="button"
+                  onClick={() => setBranchModalOpen(false)}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.82rem', padding: '6px 14px' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={branchLoading}
+                  className="btn btn-primary"
+                  style={{ fontSize: '0.82rem', padding: '6px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  {branchLoading ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+                  <span>{branchLoading ? 'Creating Branch...' : 'Create Branch'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </header>
   );
 }

@@ -45,22 +45,55 @@ export default function RulesModal({ isOpen, onClose }) {
         </div>
 
         <div style={{ padding: '24px' }}>
-          {/* Contact Details */}
+          {/* Contact & Security Details */}
           <div style={{
             background: 'var(--bg-hover, #f8fafc)',
             padding: '16px',
             borderRadius: '12px',
             border: '1px solid var(--border-light, #e2e8f0)',
             marginBottom: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main, #334155)', fontSize: '0.9rem', marginBottom: '8px' }}>
-              <MapPin size={16} color="#4f46e5" />
-              <span><strong>Address:</strong> {pg?.address || 'N/A'}</span>
-            </div>
-            {pg?.contactPhone && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main, #334155)', fontSize: '0.9rem' }}>
-                <Phone size={16} color="#059669" />
-                <span><strong>Helpline / Caretaker:</strong> {pg.contactPhone}</span>
+                <MapPin size={16} color="#4f46e5" />
+                <span><strong>Address:</strong> {pg?.address || 'N/A'}</span>
+              </div>
+              {pg?.pgType && (
+                <span style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  background: pg.pgType === 'girls' ? 'rgba(236, 72, 153, 0.12)' : (pg.pgType === 'co-ed' ? 'rgba(139, 92, 246, 0.12)' : 'rgba(59, 130, 246, 0.12)'),
+                  color: pg.pgType === 'girls' ? '#db2777' : (pg.pgType === 'co-ed' ? '#7c3aed' : '#2563eb'),
+                  border: `1px solid ${pg.pgType === 'girls' ? 'rgba(236, 72, 153, 0.3)' : (pg.pgType === 'co-ed' ? 'rgba(139, 92, 246, 0.3)' : 'rgba(59, 130, 246, 0.3)')}`,
+                }}>
+                  {pg.pgType === 'girls' ? '🌸 Girls PG' : (pg.pgType === 'co-ed' ? '👥 Co-Ed PG' : '🔷 Boys PG')}
+                </span>
+              )}
+            </div>
+
+            {pg?.curfewTime && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b45309', fontSize: '0.88rem' }}>
+                <span style={{ fontWeight: 700 }}>⏰ Gate Closing / Curfew:</span>
+                <span style={{ fontWeight: 800, background: '#fef3c7', padding: '1px 7px', borderRadius: '6px' }}>{pg.curfewTime}</span>
+              </div>
+            )}
+
+            {pg?.wardenPhone && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main, #334155)', fontSize: '0.88rem' }}>
+                <Phone size={15} color="#ec4899" />
+                <span><strong>Warden / Security:</strong> {pg.wardenPhone}</span>
+              </div>
+            )}
+
+            {pg?.contactPhone && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main, #334155)', fontSize: '0.88rem' }}>
+                <Phone size={15} color="#059669" />
+                <span><strong>Caretaker Helpline:</strong> {pg.contactPhone}</span>
               </div>
             )}
           </div>

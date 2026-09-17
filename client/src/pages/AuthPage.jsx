@@ -41,10 +41,10 @@ export default function AuthPage() {
   const [tName, setTName] = useState('');
   const [tEmail, setTEmail] = useState('');
   const [tPassword, setTPassword] = useState('');
-  const [tRoom, setTRoom] = useState('');
   const [tPhone, setTPhone] = useState('');
   const [tPgId, setTPgId] = useState('');
   const [tJoinCode, setTJoinCode] = useState('');
+  const [tGender, setTGender] = useState('female'); // 'female' | 'male'
   const [pgList, setPgList] = useState([]);
   const [loadingPGs, setLoadingPGs] = useState(false);
 
@@ -56,6 +56,7 @@ export default function AuthPage() {
   const [pgName, setPgName] = useState('');
   const [pgAddress, setPgAddress] = useState('');
   const [pgPhone, setPgPhone] = useState('');
+  const [regPgType, setRegPgType] = useState('boys'); // 'boys' | 'girls' | 'co-ed'
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -111,10 +112,10 @@ export default function AuthPage() {
         name: tName,
         email: tEmail,
         password: tPassword,
-        roomNumber: tRoom,
         phone: tPhone,
         pgId: tPgId,
         joinCode: tJoinCode.trim().toUpperCase(),
+        gender: tGender,
       });
     } catch (err) {
       setError(err.message || 'Tenant registration failed');
@@ -136,6 +137,7 @@ export default function AuthPage() {
         pgName,
         pgAddress,
         pgPhone,
+        pgType: regPgType,
       });
     } catch (err) {
       setError(err.message || 'Owner registration failed');
@@ -948,6 +950,70 @@ export default function AuthPage() {
                ========================================= */}
             {activeTab === 'tenant-reg' && (
               <form onSubmit={handleTenantRegister} style={{ width: '100%', boxSizing: 'border-box' }}>
+                {/* Gender / Category Selection */}
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px', display: 'block' }}>
+                    I am registering as *
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTGender('female');
+                        const valid = pgList.filter((p) => p.pgType === 'girls' || p.pgType === 'co-ed' || !p.pgType);
+                        if (valid.length > 0 && !valid.some((p) => p._id === tPgId)) {
+                          setTPgId(valid[0]._id);
+                        }
+                      }}
+                      style={{
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        border: tGender === 'female' ? '2px solid #ec4899' : '1px solid var(--border-light, #e2e8f0)',
+                        background: tGender === 'female' ? 'rgba(236, 72, 153, 0.12)' : 'var(--bg-hover, #f8fafc)',
+                        color: tGender === 'female' ? '#db2777' : 'var(--text-muted, #64748b)',
+                        fontWeight: tGender === 'female' ? 800 : 600,
+                        fontSize: '0.82rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span>👩 Female (Girls PG)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTGender('male');
+                        const valid = pgList.filter((p) => p.pgType === 'boys' || p.pgType === 'co-ed' || !p.pgType);
+                        if (valid.length > 0 && !valid.some((p) => p._id === tPgId)) {
+                          setTPgId(valid[0]._id);
+                        }
+                      }}
+                      style={{
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        border: tGender === 'male' ? '2px solid #3b82f6' : '1px solid var(--border-light, #e2e8f0)',
+                        background: tGender === 'male' ? 'rgba(59, 130, 246, 0.12)' : 'var(--bg-hover, #f8fafc)',
+                        color: tGender === 'male' ? '#2563eb' : 'var(--text-muted, #64748b)',
+                        fontWeight: tGender === 'male' ? 800 : 600,
+                        fontSize: '0.82rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span>👨 Male (Boys PG)</span>
+                    </button>
+                  </div>
+                </div>
+
                 <div className="auth-form-grid">
                   <div className="form-group" style={{ marginBottom: '10px' }}>
                     <label style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '5px', display: 'block' }}>
@@ -970,19 +1036,18 @@ export default function AuthPage() {
 
                   <div className="form-group" style={{ marginBottom: '10px' }}>
                     <label style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '5px', display: 'block' }}>
-                      Room Number *
+                      Contact Phone (Optional)
                     </label>
                     <div className="auth-input-wrapper">
                       <div className="auth-input-icon">
-                        <Home size={15} />
+                        <Phone size={15} />
                       </div>
                       <input
                         type="text"
                         className="auth-input-field"
-                        placeholder="e.g. 204-B"
-                        value={tRoom}
-                        onChange={(e) => setTRoom(e.target.value)}
-                        required
+                        placeholder="+91 98765 43210"
+                        value={tPhone}
+                        onChange={(e) => setTPhone(e.target.value)}
                       />
                     </div>
                   </div>
@@ -1041,7 +1106,7 @@ export default function AuthPage() {
                 <div className="form-group" style={{ marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
                     <label style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700 }}>
-                      Select PG Facility *
+                      Select {tGender === 'female' ? 'Girls' : 'Boys'} PG Facility *
                     </label>
                     <button
                       type="button"
@@ -1065,26 +1130,41 @@ export default function AuthPage() {
                       <span>{loadingPGs ? 'Refreshing...' : 'Refresh'}</span>
                     </button>
                   </div>
-                  <select
-                    className="form-select"
-                    value={tPgId}
-                    onChange={(e) => setTPgId(e.target.value)}
-                    required
-                    disabled={loadingPGs || pgList.length === 0}
-                    style={{ height: '44px', fontSize: '0.86rem', borderRadius: '10px' }}
-                  >
-                    {loadingPGs ? (
-                      <option value="">Loading registered PGs...</option>
-                    ) : pgList.length === 0 ? (
-                      <option value="">No registered PGs found (Owner registration required)</option>
-                    ) : (
-                      pgList.map((p) => (
-                        <option key={p._id} value={p._id}>
-                          {p.name} {p.address ? `(${p.address})` : ''}
-                        </option>
-                      ))
-                    )}
-                  </select>
+                  {(() => {
+                    const filteredPGList = pgList.filter((p) => {
+                      if (tGender === 'female') return p.pgType === 'girls' || p.pgType === 'co-ed' || !p.pgType;
+                      if (tGender === 'male') return p.pgType === 'boys' || p.pgType === 'co-ed' || !p.pgType;
+                      return true;
+                    });
+
+                    return (
+                      <select
+                        className="form-select"
+                        value={tPgId}
+                        onChange={(e) => setTPgId(e.target.value)}
+                        required
+                        disabled={loadingPGs || filteredPGList.length === 0}
+                        style={{ height: '44px', fontSize: '0.86rem', borderRadius: '10px' }}
+                      >
+                        {loadingPGs ? (
+                          <option value="">Loading registered PGs...</option>
+                        ) : filteredPGList.length === 0 ? (
+                          <option value="">
+                            No registered {tGender === 'female' ? 'Girls' : 'Boys'} PGs found
+                          </option>
+                        ) : (
+                          filteredPGList.map((p) => {
+                            const badge = p.pgType === 'girls' ? '🌸 [Girls PG] ' : p.pgType === 'boys' ? '🔷 [Boys PG] ' : '👥 [Co-Ed] ';
+                            return (
+                              <option key={p._id} value={p._id}>
+                                {badge}{p.name} {p.address ? `(${p.address})` : ''}
+                              </option>
+                            );
+                          })
+                        )}
+                      </select>
+                    );
+                  })()}
                 </div>
 
                 <div className="form-group" style={{ marginBottom: '12px' }}>
@@ -1110,21 +1190,23 @@ export default function AuthPage() {
                   </span>
                 </div>
 
-                <div className="form-group" style={{ marginBottom: '18px' }}>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '5px', display: 'block' }}>
-                    Contact Phone Number (Optional)
-                  </label>
-                  <div className="auth-input-wrapper">
-                    <div className="auth-input-icon">
-                      <Phone size={15} />
-                    </div>
-                    <input
-                      type="text"
-                      className="auth-input-field"
-                      placeholder="+91 98765 43210"
-                      value={tPhone}
-                      onChange={(e) => setTPhone(e.target.value)}
-                    />
+                <div style={{
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  background: 'rgba(99, 102, 241, 0.08)',
+                  border: '1px solid rgba(99, 102, 241, 0.22)',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '10px',
+                  marginBottom: '16px',
+                  fontSize: '0.78rem',
+                  lineHeight: 1.45,
+                  color: 'var(--text-primary, #1e293b)'
+                }}>
+                  <Building2 size={16} color="var(--primary, #4f46e5)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <span style={{ fontWeight: 700, color: 'var(--primary, #4f46e5)' }}>Room Assignment: </span>
+                    <span>No need to pick a room now. Your PG Owner will assign an available room to you upon reviewing your request.</span>
                   </div>
                 </div>
 
@@ -1268,6 +1350,80 @@ export default function AuthPage() {
                   PG Property Details
                 </div>
 
+                {/* PG Category / Gender Type Selection */}
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px', display: 'block' }}>
+                    PG Facility Category *
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setRegPgType('boys')}
+                      style={{
+                        padding: '8px 6px',
+                        borderRadius: '10px',
+                        border: regPgType === 'boys' ? '2px solid #3b82f6' : '1px solid var(--border-light, #e2e8f0)',
+                        background: regPgType === 'boys' ? 'rgba(59, 130, 246, 0.12)' : 'var(--bg-hover, #f8fafc)',
+                        color: regPgType === 'boys' ? '#2563eb' : 'var(--text-muted, #64748b)',
+                        fontWeight: regPgType === 'boys' ? 800 : 600,
+                        fontSize: '0.78rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span>👦 Boys PG</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setRegPgType('girls')}
+                      style={{
+                        padding: '8px 6px',
+                        borderRadius: '10px',
+                        border: regPgType === 'girls' ? '2px solid #ec4899' : '1px solid var(--border-light, #e2e8f0)',
+                        background: regPgType === 'girls' ? 'rgba(236, 72, 153, 0.12)' : 'var(--bg-hover, #f8fafc)',
+                        color: regPgType === 'girls' ? '#db2777' : 'var(--text-muted, #64748b)',
+                        fontWeight: regPgType === 'girls' ? 800 : 600,
+                        fontSize: '0.78rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span>👧 Girls PG</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setRegPgType('co-ed')}
+                      style={{
+                        padding: '8px 6px',
+                        borderRadius: '10px',
+                        border: regPgType === 'co-ed' ? '2px solid #8b5cf6' : '1px solid var(--border-light, #e2e8f0)',
+                        background: regPgType === 'co-ed' ? 'rgba(139, 92, 246, 0.12)' : 'var(--bg-hover, #f8fafc)',
+                        color: regPgType === 'co-ed' ? '#7c3aed' : 'var(--text-muted, #64748b)',
+                        fontWeight: regPgType === 'co-ed' ? 800 : 600,
+                        fontSize: '0.78rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span>👥 Co-Ed</span>
+                    </button>
+                  </div>
+                </div>
+
                 <div className="form-group" style={{ marginBottom: '10px' }}>
                   <label style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '5px', display: 'block' }}>
                     PG Facility Name *
@@ -1279,7 +1435,7 @@ export default function AuthPage() {
                     <input
                       type="text"
                       className="auth-input-field"
-                      placeholder="e.g. Green Heights Luxury PG"
+                      placeholder={regPgType === 'girls' ? "e.g. Shanti Girls Luxury PG" : "e.g. Shanti Boys Residency"}
                       value={pgName}
                       onChange={(e) => setPgName(e.target.value)}
                       required

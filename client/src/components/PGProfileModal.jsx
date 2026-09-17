@@ -8,6 +8,9 @@ export default function PGProfileModal({ isOpen, onClose }) {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+  const [pgType, setPgType] = useState('boys');
+  const [curfewTime, setCurfewTime] = useState('');
+  const [wardenPhone, setWardenPhone] = useState('');
   const [rulesText, setRulesText] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,6 +44,9 @@ export default function PGProfileModal({ isOpen, onClose }) {
       setName(pg.name || '');
       setAddress(pg.address || '');
       setContactPhone(pg.contactPhone || '');
+      setPgType(pg.pgType || 'boys');
+      setCurfewTime(pg.curfewTime || '');
+      setWardenPhone(pg.wardenPhone || '');
       setRulesText(pg.rules ? pg.rules.join('\n') : '');
       setJoinCode(pg.joinCode || 'GH-2024');
     }
@@ -64,6 +70,9 @@ export default function PGProfileModal({ isOpen, onClose }) {
         name,
         address,
         contactPhone,
+        pgType,
+        curfewTime,
+        wardenPhone,
         rules,
         joinCode: joinCode.trim().toUpperCase(),
       });
@@ -187,6 +196,39 @@ export default function PGProfileModal({ isOpen, onClose }) {
           </div>
 
           <div className="form-group">
+            <label style={{ display: 'block', marginBottom: '8px' }}>PG Facility Category *</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              {[
+                { id: 'boys', label: '👦 Boys PG', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.08)' },
+                { id: 'girls', label: '👧 Girls PG', color: '#ec4899', bg: 'rgba(236, 72, 153, 0.08)' },
+                { id: 'co-ed', label: '👥 Co-Ed PG', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.08)' },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setPgType(t.id)}
+                  style={{
+                    padding: '8px 4px',
+                    borderRadius: '8px',
+                    border: pgType === t.id ? `2px solid ${t.color}` : '1.5px solid var(--border-light, #e2e8f0)',
+                    background: pgType === t.id ? t.bg : 'var(--bg-card, #ffffff)',
+                    color: pgType === t.id ? t.color : 'var(--text-muted, #64748b)',
+                    fontWeight: pgType === t.id ? 700 : 500,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted, #64748b)', marginTop: '4px', display: 'block' }}>
+              Students of the corresponding gender will be permitted to register.
+            </span>
+          </div>
+
+          <div className="form-group">
             <label>Physical Address *</label>
             <input
               type="text"
@@ -195,6 +237,29 @@ export default function PGProfileModal({ isOpen, onClose }) {
               onChange={(e) => setAddress(e.target.value)}
               required
             />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-group">
+              <label>Curfew / Gate Closing Time</label>
+              <input
+                type="text"
+                className="form-input"
+                value={curfewTime}
+                onChange={(e) => setCurfewTime(e.target.value)}
+                placeholder="e.g. 09:30 PM"
+              />
+            </div>
+            <div className="form-group">
+              <label>Warden / Guard Phone</label>
+              <input
+                type="text"
+                className="form-input"
+                value={wardenPhone}
+                onChange={(e) => setWardenPhone(e.target.value)}
+                placeholder="e.g. +91 9876543210"
+              />
+            </div>
           </div>
 
           <div className="form-group">

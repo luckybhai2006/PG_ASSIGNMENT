@@ -34,10 +34,10 @@ export const api = {
   // Auth
   registerOwner: (body) => request('/auth/register-owner', { method: 'POST', body: JSON.stringify(body) }),
   registerTenant: (body) => request('/auth/register-tenant', { method: 'POST', body: JSON.stringify(body) }),
-  getPublicPGs: () => request('/auth/pgs'),
+  getPublicPGs: (pgType = '') => request(`/auth/pgs${pgType ? `?pgType=${encodeURIComponent(pgType)}` : ''}`),
   login: (body) => request('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
   getMe: () => request('/auth/me'),
-
+  switchActivePG: (body) => request('/auth/switch-pg', { method: 'POST', body: JSON.stringify(body) }),
 
   // PG
   getPG: () => request('/pg'),
@@ -45,6 +45,16 @@ export const api = {
   regenerateJoinCode: () => request('/pg/regenerate-join-code', { method: 'POST' }),
   addNotice: (body) => request('/pg/notices', { method: 'POST', body: JSON.stringify(body) }),
   deleteNotice: (noticeId) => request(`/pg/notices/${noticeId}`, { method: 'DELETE' }),
+  createPGBranch: (body) => request('/pg/branch', { method: 'POST', body: JSON.stringify(body) }),
+  getBranches: () => request('/pg/branches'),
+
+  // Rooms (Hub & Allocation)
+  getRooms: () => request('/pg/rooms'),
+  generateRooms: (body) => request('/pg/rooms/generate', { method: 'POST', body: JSON.stringify(body) }),
+  addRoom: (body) => request('/pg/rooms', { method: 'POST', body: JSON.stringify(body) }),
+  updateRoom: (roomId, body) => request(`/pg/rooms/${roomId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteRoom: (roomId) => request(`/pg/rooms/${roomId}`, { method: 'DELETE' }),
+  renameBlock: (body) => request('/pg/rooms/rename-block', { method: 'POST', body: JSON.stringify(body) }),
 
   // Staff (Owner & Editor)
   inviteEditor: (body) => request('/staff/invite', { method: 'POST', body: JSON.stringify(body) }),
@@ -54,8 +64,10 @@ export const api = {
   // Tenants
   addTenant: (body) => request('/tenants', { method: 'POST', body: JSON.stringify(body) }),
   getTenants: (search = '') => request(`/tenants${search ? `?search=${encodeURIComponent(search)}` : ''}`),
-  approveTenant: (id) => request(`/tenants/${id}/approve`, { method: 'PUT' }),
+  approveTenant: (id, body = {}) => request(`/tenants/${id}/approve`, { method: 'PUT', body: JSON.stringify(body) }),
   rejectTenant: (id) => request(`/tenants/${id}/reject`, { method: 'PUT' }),
+  changeTenantRoom: (id, roomNumber) => request(`/tenants/${id}/room`, { method: 'PUT', body: JSON.stringify({ roomNumber }) }),
+  transferTenantBranch: (id, targetPgId) => request(`/tenants/${id}/transfer`, { method: 'PUT', body: JSON.stringify({ targetPgId }) }),
 
   // Complaints
   getComplaints: (params = {}) => {

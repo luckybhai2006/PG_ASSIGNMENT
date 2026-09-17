@@ -1,0 +1,118 @@
+# Implementation Plan: Complete Separation of Girls PG & Boys PG Systems
+
+The objective is to establish a completely segregated system for **Girls PG** and **Boys PG**, ensuring strict privacy, distinct enrollment pipelines, customized building rules, and allowing PG owners to independently manage both Boys and Girls branches under one account.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> ### 1. Strict Gender-Based Access & Isolation
+> - **Student Experience**:
+>   - Students specify their gender during signup (`Female` / `Male`).
+>   - **Automatic Filtering**: A female student only sees and can enroll into **Girls PGs** (or Co-Ed); a male student only sees **Boys PGs**.
+>   - **Backend Security Check**: A student cannot use a Girls PG join code if their profile is Male, and vice versa.
+> - **PG Type Classification**:
+>   - Every PG property is tagged with `pgType`: `'girls' | 'boys' | 'co-ed'`.
+>   - Visual badges everywhere: `🌸 Girls PG` vs `🔷 Boys PG`.
+
+> [!IMPORTANT]
+> ### 2. Owner Multi-Branch Switcher (1 Owner, Multiple PGs)
+> - If an owner operates both a **Boys PG** and a **Girls PG**:
+>   - They don't need two different email accounts.
+>   - A sleek **Branch Switcher** dropdown in the Navbar lets the owner toggle between e.g. `🏢 Shanti Boys PG` and `🌸 Shanti Girls PG`.
+>   - Each branch has its own independent **Rooms**, **Residents**, **Complaints**, **Notices**, **Join Passcode**, and **Rules**.
+
+---
+
+## Proposed Changes
+
+### Backend (Models & Controllers)
+
+#### [MODIFY] [PG.js](file:///c:/Users/lucky/OneDrive/Documents/Assignment/server/src/models/PG.js)
+- Add `pgType`:
+  ```javascript
+  pgType: {
+    type: String,
+    enum: ['boys', 'girls', 'co-ed'],
+    default: 'boys',
+    required: true,
+  }
+  ```
+- Add optional Girls PG security settings: `curfewTime` (e.g. "9:30 PM"), `wardenPhone`, `visitorAllowed`.
+
+#### [MODIFY] [User.js](file:///c:/Users/lucky/OneDrive/Documents/Assignment/server/src/models/User.js)
+- Add `gender`:
+  ```javascript
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'other'],
+    default: 'male',
+  }
+  ```
+- For owners: allow querying all PGs owned by `ownerId: req.user._id`.
+
+#### [MODIFY] [authController.js](file:///c:/Users/lucky/OneDrive/Documents/Assignment/server/src/controllers/authController.js)
+- **`registerOwner`**: Accept `pgType` (`'boys'`, `'girls'`, or `'co-ed'`).
+- **`registerTenant`**:
+  - Accept `gender`.
+  - Validate gender against `pg.pgType`:
+    - If `pg.pgType === 'girls'` and `gender === 'male'` -> return `403 Forbidden: Male students cannot enroll into a Girls PG.`
+    - If `pg.pgType === 'boys'` and `gender === 'female'` -> return `403 Forbidden: Female students cannot enroll into a Boys PG.`
+- **`getPublicPGs`**:
+  - Support `?pgType=girls` or `?pgType=boys` filter, and return `pgType` with each PG card.
+- **`switchActivePG` (New Endpoint)**:
+  - For owners who own multiple PGs, update their active `pgId` in session/profile so they seamlessly switch between their Boys branch and Girls branch.
+
+#### [MODIFY] [pgController.js](file:///c:/Users/lucky/OneDrive/Documents/Assignment/server/src/controllers/pgController.js) & [pgRoutes.js](file:///c:/Users/lucky/OneDrive/Documents/Assignment/server/src/routes/pgRoutes.js)
+- **`createPGBranch` (New Endpoint)**:
+  - Allows an existing owner to register an additional branch (e.g. add a Girls PG alongside their existing Boys PG).
+- **`getMyPGs`**:
+  - Returns list of all PGs owned by the logged-in owner.
+
+---
+
+### Frontend (Client UI & Experience)
+
+#### [MODIFY] [AuthPage.jsx](file:///c:/Users/lucky/OneDrive/Documents/Assignment/client/src/pages/AuthPage.jsx)
+- **Owner Registration**:
+  - Add PG Type selector cards:
+    - `👦 Boys PG` (with blue/indigo theme highlight)
+    - `👧 Girls PG` (with rose/purple theme highlight)
+    - `👥 Co-Ed PG`
+- **Student Registration**:
+  - Add Gender selection pills: `👩 Female` / `👨 Male`.
+  - In "Select PG Facility", dynamically filter the PG list based on selected gender (so a girl only sees Girls PGs; a boy only sees Boys PGs).
+  - Show PG type pill on each option (`🌸 Girls PG` or `🔷 Boys PG`).
+
+#### [MODIFY] [Navbar.jsx](file:///c:/Users/lucky/OneDrive/Documents/Assignment/client/src/components/Navbar.jsx)
+- For Owners:
+  - Add **Property Branch Switcher** dropdown next to PG name:
+    - Shows current active PG with its badge (`🌸 Sunrise Girls PG` or `🔷 Sunrise Boys PG`).
+    - Clicking reveals other branches owned by this owner, plus `+ Add New Branch (Boys / Girls)`.
+    - Switching immediately refreshes dashboard stats, rooms, complaints, and tenants for that branch.
+
+#### [MODIFY] [TenantModal.jsx](file:///c:/Users/lucky/OneDrive/Documents/Assignment/client/src/components/TenantModal.jsx)
+- Display `gender` badges on student cards.
+- In `🏢 Rooms Hub`: Show PG branch context (`Girls PG Wing` / `Boys PG Wing`).
+
+#### [MODIFY] [PGProfileModal.jsx](file:///c:/Users/lucky/OneDrive/Documents/Assignment/client/src/components/PGProfileModal.jsx)
+- Allow owner to view/edit `pgType`, warden contact number, and curfew guidelines.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+1. Script `scratch/verify_gender_pg.js`:
+   - Owner registers `Girls PG`.
+   - Male student attempts registration to `Girls PG` -> Verify rejected with clear 403 error.
+   - Female student registers to `Girls PG` -> Verify accepted into pending queue.
+   - Same owner creates a 2nd branch `Boys PG`.
+   - Owner switches between branches; verify distinct room sequences and independent complaints.
+
+### Manual Verification
+1. Open `http://localhost:5173`.
+2. Inspect Owner registration tab: verify PG type selection.
+3. Inspect Student registration tab: select Female and see only Girls PGs; select Male and see only Boys PGs.
+4. Test Owner Branch Switcher in dashboard navbar.

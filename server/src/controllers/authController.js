@@ -16,12 +16,23 @@ const generateToken = (id) => {
 // @access  Public
 exports.registerOwner = async (req, res) => {
   try {
-    const { name, email, password, phone, pgName, pgAddress, pgPhone } = req.body;
+    const {
+      name,
+      email,
+      password,
+      phone,
+      pgName,
+      pgAddress,
+      pgPhone,
+      pgType = 'boys',
+      curfewTime,
+      wardenPhone,
+    } = req.body;
 
     if (!name || !email || !password || !pgName || !pgAddress) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide name, email, password, PG name, and PG address',
+        message: 'Please provide all required fields (name, email, password, pgName, pgAddress)',
       });
     }
 
@@ -35,29 +46,44 @@ exports.registerOwner = async (req, res) => {
 
     // 1. Create Owner User
     const owner = new User({
-      name,
-      email: email.toLowerCase(),
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
       password,
       role: 'owner',
-      phone: phone || '',
+      phone: phone ? phone.trim() : '',
       inviteStatus: 'accepted',
     });
     await owner.save();
 
-    // 2. Create PG
+    // 2. Tailored Rules for Boys vs Girls PG
+    const cleanPgType = ['boys', 'girls', 'co-ed'].includes(pgType) ? pgType : 'boys';
+    const defaultRules = cleanPgType === 'girls'
+      ? [
+          'Main gate curfew strictly at 9:30 PM.',
+          'Male visitors strictly prohibited inside residential floors.',
+          'Inform warden prior to night outs with guardian authorization.',
+          'Keep common areas and study rooms quiet after 11:00 PM.',
+        ]
+      : [
+          'Main gate closes at 10:30 PM.',
+          'Keep rooms and common areas clean; turn off appliances when leaving.',
+          'Visitors allowed only in ground-floor lounge until 8:00 PM.',
+          'No smoking or substance consumption on premises.',
+        ];
+
+    // 3. Create PG
     const pg = new PG({
-      name: pgName,
-      address: pgAddress,
+      name: pgName.trim(),
+      address: pgAddress.trim(),
       ownerId: owner._id,
-      contactPhone: pgPhone || phone || '',
-      rules: [
-        'Gate closes at 10:30 PM.',
-        'Keep common areas clean and switch off appliances when not in use.',
-        'Visitors allowed in lounge area until 8:00 PM.',
-      ],
+      contactPhone: pgPhone ? pgPhone.trim() : (phone ? phone.trim() : ''),
+      pgType: cleanPgType,
+      curfewTime: curfewTime ? curfewTime.trim() : (cleanPgType === 'girls' ? '9:30 PM' : '10:30 PM'),
+      wardenPhone: wardenPhone ? wardenPhone.trim() : '',
+      rules: defaultRules,
       noticeBoard: [
         {
-          title: 'Welcome to your PG Complaint Portal!',
+          title: `Welcome to ${pgName.trim()} (${cleanPgType === 'girls' ? 'Girls PG' : cleanPgType === 'boys' ? 'Boys PG' : 'Co-Ed PG'})`,
           message: 'Please raise any room or amenity complaints here for prompt resolution.',
           priority: 'normal',
           postedBy: owner._id,
@@ -66,7 +92,7 @@ exports.registerOwner = async (req, res) => {
     });
     await pg.save();
 
-    // 3. Link PG to owner
+    // 4. Link PG to owner
     owner.pgId = pg._id;
     await owner.save();
 
@@ -74,18 +100,20 @@ exports.registerOwner = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Owner and PG registered successfully',
+      message: `Owner and ${cleanPgType === 'girls' ? 'Girls PG' : 'Boys PG'} registered successfully`,
       token,
       user: {
         id: owner._id,
         name: owner.name,
         email: owner.email,
         role: owner.role,
+        gender: owner.gender,
         phone: owner.phone,
         pgId: owner.pgId,
         inviteStatus: owner.inviteStatus,
       },
       pg,
+      myPGs: [pg],
     });
   } catch (error) {
     console.error('Register Owner Error:', error);
@@ -190,6 +218,13 @@ exports.getMe = async (req, res) => {
       }
     }
 
+    let myPGs = [];
+    if (user.role === 'owner') {
+      myPGs = await PG.find({ ownerId: user._id })
+        .select('name address pgType joinCode contactPhone curfewTime wardenPhone createdAt')
+        .sort({ createdAt: 1 });
+    }
+
     return res.json({
       success: true,
       user: {
@@ -197,12 +232,14 @@ exports.getMe = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        gender: user.gender,
         roomNumber: user.roomNumber,
         phone: user.phone,
         pgId: user.pgId,
         inviteStatus: user.inviteStatus,
       },
       pg,
+      myPGs,
       needsInviteAcceptance:
         user.role === 'editor' && user.inviteStatus === 'pending',
       needsTenantApproval:
@@ -217,13 +254,22 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// @desc    Get all listed PGs (for student signup dropdown)
+// @desc    Get all listed PGs (with optional gender filtering for student signup)
 // @route   GET /api/auth/pgs
 // @access  Public
 exports.getPublicPGs = async (req, res) => {
   try {
-    const pgs = await PG.find({})
-      .select('name address contactPhone ownerId createdAt')
+    const { pgType } = req.query;
+
+    let filter = {};
+    if (pgType && ['boys', 'girls'].includes(pgType.toLowerCase())) {
+      filter = {
+        $or: [{ pgType: pgType.toLowerCase() }, { pgType: 'co-ed' }],
+      };
+    }
+
+    const pgs = await PG.find(filter)
+      .select('name address contactPhone ownerId createdAt pgType curfewTime wardenPhone')
       .populate('ownerId', 'name email phone')
       .sort({ createdAt: -1 });
 
@@ -241,17 +287,17 @@ exports.getPublicPGs = async (req, res) => {
   }
 };
 
-// @desc    Register a new Student/Tenant for a selected PG
+// @desc    Register a new Student/Tenant for a selected PG with gender safety
 // @route   POST /api/auth/register-tenant
 // @access  Public
 exports.registerTenant = async (req, res) => {
   try {
-    const { name, email, password, roomNumber, phone, pgId, joinCode } = req.body;
+    const { name, email, password, roomNumber, phone, pgId, joinCode, gender } = req.body;
 
-    if (!name || !email || !password || !roomNumber || !pgId) {
+    if (!name || !email || !password || !pgId) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide name, email, password, room number, and select a PG',
+        message: 'Please provide name, email, password, and select a PG',
       });
     }
 
@@ -278,6 +324,24 @@ exports.registerTenant = async (req, res) => {
       });
     }
 
+    // Gender vs PG Type Hard Security Check
+    const cleanGender = (gender || 'male').toLowerCase();
+    const facilityType = pg.pgType || 'boys';
+
+    if (facilityType === 'girls' && cleanGender === 'male') {
+      return res.status(403).json({
+        success: false,
+        message: `Enrollment Blocked: ${pg.name} is strictly a Girls PG facility. Male student enrollment is prohibited for resident safety.`,
+      });
+    }
+
+    if (facilityType === 'boys' && cleanGender === 'female') {
+      return res.status(403).json({
+        success: false,
+        message: `Enrollment Blocked: ${pg.name} is strictly a Boys PG facility. Female student enrollment is prohibited.`,
+      });
+    }
+
     // Verify secret join code (ignore hyphens, spaces, and case)
     const normalizeCode = (c) => (c || '').replace(/[\s\-_]/g, '').toUpperCase();
     const cleanInput = normalizeCode(joinCode);
@@ -286,7 +350,7 @@ exports.registerTenant = async (req, res) => {
     if (cleanInput !== cleanExpected) {
       return res.status(400).json({
         success: false,
-        message: `Invalid PG Secret Join Code for ${pg.name}. Please contact your PG Owner or Caretaker for the correct enrollment passcode.`,
+        message: `Invalid PG Secret Join Code for ${pg.name}. Please contact your PG Owner or Caretaker for the correct passcode.`,
       });
     }
 
@@ -295,7 +359,8 @@ exports.registerTenant = async (req, res) => {
       email: email.toLowerCase().trim(),
       password,
       role: 'tenant',
-      roomNumber: roomNumber.trim(),
+      gender: cleanGender,
+      roomNumber: (roomNumber && roomNumber.trim()) ? roomNumber.trim().toUpperCase() : 'Unassigned',
       phone: phone ? phone.trim() : '',
       pgId: pg._id,
       invitedBy: pg.ownerId,
@@ -308,7 +373,7 @@ exports.registerTenant = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Student registered successfully. Awaiting approval from PG Owner.',
+      message: 'Student registered successfully. Awaiting room allocation and approval from PG Owner.',
       token,
       needsTenantApproval: true,
       user: {
@@ -316,6 +381,7 @@ exports.registerTenant = async (req, res) => {
         name: tenant.name,
         email: tenant.email,
         role: tenant.role,
+        gender: tenant.gender,
         roomNumber: tenant.roomNumber,
         phone: tenant.phone,
         pgId: tenant.pgId,
@@ -328,6 +394,64 @@ exports.registerTenant = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || 'Server error during student registration',
+    });
+  }
+};
+
+// @desc    Switch active PG for Owner (e.g. Boys Branch ⇄ Girls Branch)
+// @route   POST /api/auth/switch-pg
+// @access  Private (Owner only)
+exports.switchActivePG = async (req, res) => {
+  try {
+    const { pgId } = req.body;
+    if (!pgId) {
+      return res.status(400).json({ success: false, message: 'PG ID is required' });
+    }
+
+    const pgDoc = await PG.findById(pgId);
+    if (!pgDoc) {
+      return res.status(404).json({ success: false, message: 'PG facility not found' });
+    }
+
+    if (pgDoc.ownerId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to manage this PG branch' });
+    }
+
+    const user = await User.findById(req.user._id);
+    user.pgId = pgDoc._id;
+    await user.save();
+
+    const tenantCount = await User.countDocuments({ pgId: pgDoc._id, role: 'tenant' });
+    const pgData = pgDoc.toObject();
+    pgData.tenantCount = tenantCount;
+
+    const myPGs = await PG.find({ ownerId: user._id })
+      .select('name address pgType joinCode contactPhone curfewTime wardenPhone createdAt')
+      .sort({ createdAt: 1 });
+
+    const typeLabel = pgDoc.pgType === 'girls' ? 'Girls PG' : pgDoc.pgType === 'boys' ? 'Boys PG' : 'Co-Ed PG';
+
+    return res.json({
+      success: true,
+      message: `Active branch switched to "${pgDoc.name}" (${typeLabel})`,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        gender: user.gender,
+        phone: user.phone,
+        pgId: user.pgId,
+        inviteStatus: user.inviteStatus,
+      },
+      pg: pgData,
+      myPGs,
+    });
+  } catch (error) {
+    console.error('Switch PG Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Server error switching branch',
     });
   }
 };

@@ -6,6 +6,7 @@ const {
   getPublicPGs,
   login,
   getMe,
+  switchActivePG,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -14,6 +15,7 @@ router.post('/register-owner', registerOwner);
 router.post('/register-tenant', registerTenant);
 router.post('/login', login);
 router.get('/me', protect, getMe);
+router.post('/switch-pg', protect, switchActivePG);
 
 module.exports = router;
 

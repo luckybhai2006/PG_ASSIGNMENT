@@ -87,7 +87,7 @@ export default function Dashboard() {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [needsInviteAcceptance, selectedStatus, selectedCategory, selectedPriority, searchQuery]);
+  }, [needsInviteAcceptance, selectedStatus, selectedCategory, selectedPriority, searchQuery, pg?._id]);
 
   useEffect(() => {
     fetchData();

@@ -26,6 +26,35 @@ const noticeSchema = new mongoose.Schema({
   },
 });
 
+const roomSchema = new mongoose.Schema({
+  roomNumber: {
+    type: String,
+    required: true,
+    trim: true,
+    uppercase: true,
+  },
+  block: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  wing: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  floor: {
+    type: Number,
+    default: 1,
+  },
+  capacity: {
+    type: Number,
+    default: 2,
+    min: 1,
+    max: 10,
+  },
+});
+
 const pgSchema = new mongoose.Schema(
   {
     name: {
@@ -54,6 +83,23 @@ const pgSchema = new mongoose.Schema(
       },
     ],
     noticeBoard: [noticeSchema],
+    rooms: [roomSchema],
+    pgType: {
+      type: String,
+      enum: ['boys', 'girls', 'co-ed'],
+      default: 'boys',
+      required: true,
+    },
+    curfewTime: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    wardenPhone: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     joinCode: {
       type: String,
       trim: true,

@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [pg, setPg] = useState(null);
+  const [myPGs, setMyPGs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [needsInviteAcceptance, setNeedsInviteAcceptance] = useState(false);
   const [needsTenantApproval, setNeedsTenantApproval] = useState(false);
@@ -25,6 +26,7 @@ export const AuthProvider = ({ children }) => {
       const data = await api.getMe();
       setUser(data.user);
       setPg(data.pg);
+      if (data.myPGs) setMyPGs(data.myPGs);
       setNeedsInviteAcceptance(Boolean(data.needsInviteAcceptance));
       setNeedsTenantApproval(Boolean(data.needsTenantApproval));
     } catch (err) {
@@ -39,6 +41,7 @@ export const AuthProvider = ({ children }) => {
         removeToken();
         setUser(null);
         setPg(null);
+        setMyPGs([]);
       }
     } finally {
       inFlightRef.current = false;
@@ -55,6 +58,7 @@ export const AuthProvider = ({ children }) => {
     setToken(data.token);
     setUser(data.user);
     setPg(data.pg);
+    if (data.myPGs) setMyPGs(data.myPGs);
     setNeedsInviteAcceptance(Boolean(data.needsInviteAcceptance));
     setNeedsTenantApproval(Boolean(data.needsTenantApproval));
     return data;
@@ -65,6 +69,7 @@ export const AuthProvider = ({ children }) => {
     setToken(data.token);
     setUser(data.user);
     setPg(data.pg);
+    if (data.myPGs) setMyPGs(data.myPGs);
     setNeedsInviteAcceptance(false);
     setNeedsTenantApproval(false);
     return data;
@@ -84,6 +89,7 @@ export const AuthProvider = ({ children }) => {
     removeToken();
     setUser(null);
     setPg(null);
+    setMyPGs([]);
     setNeedsInviteAcceptance(false);
     setNeedsTenantApproval(false);
   };
@@ -97,6 +103,21 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  const switchActivePG = async (pgId) => {
+    const data = await api.switchActivePG({ pgId });
+    setUser(data.user);
+    setPg(data.pg);
+    if (data.myPGs) setMyPGs(data.myPGs);
+    return data;
+  };
+
+  const addPGBranch = async (branchData) => {
+    const data = await api.createPGBranch(branchData);
+    setPg(data.pg);
+    if (data.myPGs) setMyPGs(data.myPGs);
+    return data;
+  };
+
   const updatePGState = useCallback((newPgData) => {
     setPg((prev) => ({ ...prev, ...newPgData }));
   }, []);
@@ -106,6 +127,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         pg,
+        myPGs,
         loading,
         needsInviteAcceptance,
         needsTenantApproval,
@@ -114,6 +136,8 @@ export const AuthProvider = ({ children }) => {
         registerTenant,
         logout,
         acceptInvite,
+        switchActivePG,
+        addPGBranch,
         updatePGState,
         refreshUser: loadUser,
       }}
