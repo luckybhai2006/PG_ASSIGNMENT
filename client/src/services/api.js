@@ -42,6 +42,7 @@ export const api = {
   // PG
   getPG: () => request('/pg'),
   updatePGProfile: (body) => request('/pg/profile', { method: 'PUT', body: JSON.stringify(body) }),
+  regenerateJoinCode: () => request('/pg/regenerate-join-code', { method: 'POST' }),
   addNotice: (body) => request('/pg/notices', { method: 'POST', body: JSON.stringify(body) }),
   deleteNotice: (noticeId) => request(`/pg/notices/${noticeId}`, { method: 'DELETE' }),
 

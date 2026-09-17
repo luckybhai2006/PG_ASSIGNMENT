@@ -15,13 +15,15 @@ import {
   ShieldCheck,
   Calendar,
   AlertCircle,
-  Loader2
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function TenantModal({ isOpen, onClose, onTenantAdded, initialTab = 'active' }) {
-  const { pg } = useAuth();
+  const { pg, user, updatePGState } = useAuth();
+  const isOwner = user?.role === 'owner';
   const [activeTab, setActiveTab] = useState(initialTab); // 'active' | 'pending' | 'add'
   const [tenants, setTenants] = useState([]);
   const [pendingTenants, setPendingTenants] = useState([]);
@@ -37,9 +39,30 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded, initialTab
 
   // Status & Loaders
   const [loading, setLoading] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const handleRegenerateCode = async () => {
+    if (!window.confirm("Are you sure you want to regenerate the Secret Join Passcode? The old passcode will stop working for new student registrations immediately.")) {
+      return;
+    }
+    setRegenerating(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await api.regenerateJoinCode();
+      if (updatePGState) {
+        updatePGState({ joinCode: res.joinCode });
+      }
+      setSuccess(res.message || `New passcode generated: ${res.joinCode}`);
+    } catch (err) {
+      setError(err.message || 'Failed to regenerate join passcode');
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   const fetchTenants = async (term = '') => {
     try {
@@ -286,6 +309,20 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded, initialTab
                   </>
                 )}
               </button>
+
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={handleRegenerateCode}
+                  disabled={regenerating}
+                  className="btn btn-secondary"
+                  style={{ height: '32px', padding: '0 11px', fontSize: '0.78rem', fontWeight: 700 }}
+                  title="Generate a new passcode if current one is leaked"
+                >
+                  <RefreshCw size={13} style={{ animation: regenerating ? 'spin 1s linear infinite' : 'none' }} />
+                  <span>{regenerating ? 'Regenerating...' : 'Regenerate'}</span>
+                </button>
+              )}
             </div>
           </div>
 

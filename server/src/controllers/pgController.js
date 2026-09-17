@@ -94,6 +94,56 @@ exports.updatePGProfile = async (req, res) => {
   }
 };
 
+// @desc    Regenerate Secret Student Join Code
+// @route   POST /api/pg/regenerate-join-code
+// @access  Private (Owner ONLY)
+exports.regenerateJoinCode = async (req, res) => {
+  try {
+    const pgId = req.user.pgId;
+    const pg = await PG.findById(pgId);
+    if (!pg) {
+      return res.status(404).json({
+        success: false,
+        message: 'PG not found',
+      });
+    }
+
+    if (pg.ownerId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the PG Owner can regenerate the join passcode',
+      });
+    }
+
+    const prefix = (pg.name || 'PG')
+      .replace(/[^A-Za-z]/g, '')
+      .slice(0, 2)
+      .toUpperCase() || 'PG';
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const newCode = `${prefix}-${randomSuffix}`;
+
+    pg.joinCode = newCode;
+    await pg.save();
+
+    const tenantCount = await User.countDocuments({ pgId, role: 'tenant' });
+    const pgData = pg.toObject();
+    pgData.tenantCount = tenantCount;
+
+    return res.json({
+      success: true,
+      message: `Passcode regenerated successfully: ${newCode}`,
+      joinCode: newCode,
+      pg: pgData,
+    });
+  } catch (error) {
+    console.error('Regenerate Join Code Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Server error',
+    });
+  }
+};
+
 // @desc    Add announcement / notice to Notice Board
 // @route   POST /api/pg/notices
 // @access  Private (Owner, Accepted Editor)

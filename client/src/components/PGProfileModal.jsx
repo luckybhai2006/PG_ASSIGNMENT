@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Building, Users, KeyRound } from 'lucide-react';
+import { X, Save, Building, Users, KeyRound, RefreshCw } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,8 +11,30 @@ export default function PGProfileModal({ isOpen, onClose }) {
   const [rulesText, setRulesText] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const handleRegenerateCode = async () => {
+    if (!window.confirm("Are you sure you want to regenerate the Secret Join Passcode? The old passcode will stop working for new student registrations immediately.")) {
+      return;
+    }
+    setRegenerating(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await api.regenerateJoinCode();
+      setJoinCode(res.joinCode);
+      if (updatePGState) {
+        updatePGState({ joinCode: res.joinCode });
+      }
+      setSuccess(res.message || `New passcode generated: ${res.joinCode}`);
+    } catch (err) {
+      setError(err.message || 'Failed to regenerate join passcode');
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   useEffect(() => {
     if (pg) {
@@ -180,21 +202,23 @@ export default function PGProfileModal({ isOpen, onClose }) {
               <label style={{ margin: 0 }}>Secret Student Enrollment Code *</label>
               <button
                 type="button"
-                onClick={() => {
-                  const prefix = (name || 'PG').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || 'PG';
-                  setJoinCode(`${prefix}-${Math.floor(1000 + Math.random() * 9000)}`);
-                }}
+                onClick={handleRegenerateCode}
+                disabled={regenerating}
                 style={{
                   background: 'none',
                   border: 'none',
                   color: 'var(--primary, #4f46e5)',
                   fontSize: '0.74rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   cursor: 'pointer',
                   padding: 0,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
                 }}
               >
-                ↻ Generate New Code
+                <RefreshCw size={11} style={{ animation: regenerating ? 'spin 1s linear infinite' : 'none' }} />
+                <span>{regenerating ? 'Regenerating...' : '↻ Regenerate Code'}</span>
               </button>
             </div>
             <div style={{ position: 'relative' }}>
