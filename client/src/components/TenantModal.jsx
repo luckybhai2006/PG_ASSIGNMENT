@@ -541,7 +541,7 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded, initialTab
       <div
         className="modal-content"
         style={{
-          maxWidth: '820px',
+          maxWidth: '860px',
           width: '96%',
           maxHeight: '92vh',
           display: 'flex',
@@ -639,6 +639,7 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded, initialTab
 
           {/* Secret Join Code Banner */}
           <div
+            className="tenant-passcode-banner"
             style={{
               background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.07) 0%, rgba(6, 182, 212, 0.07) 100%)',
               border: '1.5px solid rgba(79, 70, 229, 0.22)',
@@ -652,7 +653,7 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded, initialTab
               flexWrap: 'wrap',
             }}
           >
-            <div>
+            <div className="tenant-passcode-info">
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <KeyRound size={15} color="var(--primary, #4f46e5)" />
                 <span
@@ -672,7 +673,7 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded, initialTab
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <div className="tenant-passcode-actions">
               <code
                 style={{
                   fontSize: '1.05rem',

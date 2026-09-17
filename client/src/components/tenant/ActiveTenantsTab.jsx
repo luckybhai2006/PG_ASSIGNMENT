@@ -35,12 +35,12 @@ export default function ActiveTenantsTab({
 }) {
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+      <div className="tenant-search-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
         <span style={{ fontSize: '0.82rem', color: 'var(--text-muted, #64748b)', fontWeight: 600 }}>
           Showing approved residents currently residing in PG
         </span>
 
-        <div style={{ position: 'relative', width: '220px' }}>
+        <div className="tenant-search-box" style={{ position: 'relative', width: '220px' }}>
           <Search size={14} style={{ position: 'absolute', left: '10px', top: '9px', color: 'var(--text-light, #94a3b8)' }} />
           <input
             type="text"
@@ -80,22 +80,13 @@ export default function ActiveTenantsTab({
           </button>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '340px', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {tenants.map((t) => (
             <div
               key={t._id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 16px',
-                background: 'var(--bg-card, #ffffff)',
-                border: '1px solid var(--border-light, #e2e8f0)',
-                borderRadius: '10px',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
-              }}
+              className="tenant-student-card"
             >
-              <div>
+              <div className="tenant-student-info">
                 <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main, #0f172a)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span>{t.name}</span>
                   <span
@@ -139,7 +130,7 @@ export default function ActiveTenantsTab({
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <div className="tenant-student-actions">
                 {/* Interactive Room Badge / Quick Change Room for Staff & Owner */}
                 {editingRoomTenantId === t._id ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -256,7 +247,7 @@ export default function ActiveTenantsTab({
                 )}
 
                 {isOwner && myPGs && myPGs.length > 1 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div className="tenant-branch-select-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <select
                       className="form-select"
                       style={{
@@ -264,6 +255,7 @@ export default function ActiveTenantsTab({
                         padding: '4px 8px',
                         height: '32px',
                         width: 'auto',
+                        maxWidth: '100%',
                         borderRadius: '7px',
                         cursor: 'pointer',
                       }}
@@ -293,6 +285,7 @@ export default function ActiveTenantsTab({
                 {canManageTenants && (
                   <button
                     type="button"
+                    className="tenant-checkout-btn"
                     onClick={() => onCheckoutClick(t)}
                     style={{
                       display: 'inline-flex',

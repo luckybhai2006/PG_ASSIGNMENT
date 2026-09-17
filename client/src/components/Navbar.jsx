@@ -53,8 +53,25 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
         setBranchDropdownOpen(false);
       }
     }
+
+    function handleScroll(event) {
+      // Don't close if scrolling inside the branch list itself
+      if (branchDropdownRef.current && branchDropdownRef.current.contains(event.target)) {
+        return;
+      }
+      if (dropdownRef.current && dropdownRef.current.contains(event.target)) {
+        return;
+      }
+      setBranchDropdownOpen(false);
+      setDropdownOpen(false);
+    }
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, { capture: true });
+    };
   }, []);
 
   const getPgTypeBadge = (type) => {
@@ -246,31 +263,34 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
 
                   {/* Branch Switcher Dropdown */}
                   {branchDropdownOpen && (
-                    <div style={{
-                      position: 'absolute',
-                      left: 0,
-                      top: '28px',
-                      width: '280px',
-                      background: 'var(--bg-card, #ffffff)',
-                      borderRadius: '12px',
-                      boxShadow: '0 12px 28px -5px rgba(0, 0, 0, 0.25)',
-                      border: '1px solid var(--border-light, #e2e8f0)',
-                      padding: '8px',
-                      zIndex: 200,
-                      boxSizing: 'border-box',
-                    }}>
+                    <div
+                      className="navbar-branch-dropdown"
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: '28px',
+                        width: '280px',
+                        background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 55%, #f7fee7 100%)',
+                        borderRadius: '14px',
+                        boxShadow: '0 14px 34px -4px rgba(16, 185, 129, 0.18), 0 4px 12px rgba(0, 0, 0, 0.05)',
+                        border: '1.5px solid #86efac',
+                        padding: '10px',
+                        zIndex: 200,
+                        boxSizing: 'border-box',
+                      }}
+                    >
                       <div style={{
                         padding: '4px 6px 8px',
-                        borderBottom: '1px solid var(--border-light, #f1f5f9)',
-                        marginBottom: '6px',
+                        borderBottom: '1px solid #bbf7d0',
+                        marginBottom: '8px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                       }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted, #64748b)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                           My PG Branches
                         </span>
-                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--primary, #4f46e5)' }}>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#047857', background: '#dcfce7', border: '1px solid #86efac', padding: '2px 8px', borderRadius: '10px' }}>
                           {(myPGs?.length || 1)} Total
                         </span>
                       </div>
@@ -284,39 +304,46 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
                               key={branch._id}
                               onClick={() => handleSwitchBranch(branch._id)}
                               style={{
-                                padding: '8px',
-                                borderRadius: '8px',
+                                padding: '9px 10px',
+                                borderRadius: '9px',
                                 cursor: isActive ? 'default' : 'pointer',
-                                background: isActive ? 'rgba(79, 70, 229, 0.08)' : 'transparent',
-                                border: isActive ? '1px solid rgba(79, 70, 229, 0.25)' : '1px solid transparent',
-                                marginBottom: '4px',
+                                background: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.65)',
+                                border: isActive ? '1.5px solid #10b981' : '1px solid rgba(167, 243, 208, 0.6)',
+                                boxShadow: isActive ? '0 2px 8px rgba(16, 185, 129, 0.14)' : 'none',
+                                marginBottom: '5px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
                                 transition: 'all 0.15s ease',
                               }}
                               onMouseEnter={(e) => {
-                                if (!isActive) e.currentTarget.style.background = 'var(--bg-hover, #f8fafc)';
+                                if (!isActive) {
+                                  e.currentTarget.style.background = '#ffffff';
+                                  e.currentTarget.style.borderColor = '#34d399';
+                                }
                               }}
                               onMouseLeave={(e) => {
-                                if (!isActive) e.currentTarget.style.background = 'transparent';
+                                if (!isActive) {
+                                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.65)';
+                                  e.currentTarget.style.borderColor = 'rgba(167, 243, 208, 0.6)';
+                                }
                               }}
                             >
                               <div style={{ minWidth: 0, flex: 1 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   <span style={{
                                     fontWeight: 700,
-                                    fontSize: '0.82rem',
-                                    color: isActive ? 'var(--primary, #4f46e5)' : 'var(--text-main, #0f172a)',
+                                    fontSize: '0.84rem',
+                                    color: isActive ? '#064e3b' : '#1e293b',
                                     whiteSpace: 'nowrap',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
                                   }}>
                                     {branch.name}
                                   </span>
-                                  {isActive && <Check size={13} color="#4f46e5" strokeWidth={3} />}
+                                  {isActive && <Check size={14} color="#059669" strokeWidth={3} />}
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
                                   <span style={{
                                     fontSize: '0.62rem',
                                     fontWeight: 700,
@@ -330,7 +357,7 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
                                   </span>
                                   <span style={{
                                     fontSize: '0.68rem',
-                                    color: 'var(--text-muted, #64748b)',
+                                    color: '#4b5563',
                                     whiteSpace: 'nowrap',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
@@ -340,14 +367,14 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
                                 </div>
                               </div>
                               {switchingBranchId === branch._id && (
-                                <Loader2 size={14} className="animate-spin" color="#4f46e5" />
+                                <Loader2 size={14} className="animate-spin" color="#059669" />
                               )}
                             </div>
                           );
                         })}
                       </div>
 
-                      <div style={{ borderTop: '1px solid var(--border-light, #f1f5f9)', marginTop: '6px', paddingTop: '6px' }}>
+                      <div style={{ borderTop: '1px solid #bbf7d0', marginTop: '6px', paddingTop: '6px' }}>
                         <button
                           type="button"
                           onClick={() => {
@@ -356,11 +383,11 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
                           }}
                           style={{
                             width: '100%',
-                            padding: '7px 10px',
+                            padding: '8px 10px',
                             borderRadius: '8px',
-                            border: '1px dashed var(--primary, #4f46e5)',
-                            background: 'rgba(79, 70, 229, 0.04)',
-                            color: 'var(--primary, #4f46e5)',
+                            border: '1.5px dashed #10b981',
+                            background: '#ffffff',
+                            color: '#047857',
                             fontWeight: 700,
                             fontSize: '0.78rem',
                             cursor: 'pointer',
@@ -370,9 +397,17 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
                             gap: '6px',
                             transition: 'all 0.15s ease',
                           }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#f0fdf4';
+                            e.currentTarget.style.borderColor = '#059669';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#ffffff';
+                            e.currentTarget.style.borderColor = '#10b981';
+                          }}
                         >
                           <Plus size={14} />
-                          <span>Add New PG Branch</span>
+                          <span>+ Add New PG Branch</span>
                         </button>
                       </div>
                     </div>

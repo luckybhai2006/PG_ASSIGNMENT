@@ -320,11 +320,11 @@ export default function Dashboard() {
           </div>
 
           {/* Action Buttons: Responsive Fluid Toolbar */}
-          <div className="action-buttons-wrap">
+          <div className={`action-buttons-wrap ${isOwner ? 'owner-action-wrap' : 'staff-action-wrap'}`}>
             {isOwner && (
               <button
                 onClick={() => setIsStaffModalOpen(true)}
-                className="btn btn-secondary secondary-action-btn"
+                className="btn btn-secondary secondary-action-btn staff-action-btn"
                 style={{ height: '38px', padding: '0 14px', fontSize: '0.82rem' }}
                 title="Manage Staff Editors"
               >
@@ -336,7 +336,7 @@ export default function Dashboard() {
             {isStaff && (
               <button
                 onClick={() => handleOpenTenants(pendingStudentsCount > 0 ? 'pending' : 'active')}
-                className="btn btn-secondary secondary-action-btn"
+                className="btn btn-secondary secondary-action-btn student-action-btn"
                 style={{
                   height: '38px',
                   padding: '0 14px',

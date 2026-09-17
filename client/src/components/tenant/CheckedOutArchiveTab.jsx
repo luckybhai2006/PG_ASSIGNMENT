@@ -45,7 +45,7 @@ export default function CheckedOutArchiveTab({
           </p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '340px', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {vacatedTenants.map((t) => (
             <div
               key={t._id}

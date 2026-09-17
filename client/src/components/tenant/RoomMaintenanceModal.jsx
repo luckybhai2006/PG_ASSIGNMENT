@@ -25,12 +25,12 @@ export default function RoomMaintenanceModal({
 
   return (
     <div
-      className="modal-backdrop"
+      className="modal-backdrop center-dialog-backdrop"
       style={{ zIndex: 1200, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(3px)' }}
       onClick={() => !loading && onClose()}
     >
       <div
-        className="modal-content"
+        className="modal-content center-dialog-modal"
         style={{
           maxWidth: '460px',
           width: '92%',

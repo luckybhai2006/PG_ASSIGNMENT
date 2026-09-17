@@ -57,7 +57,7 @@ export default function PendingApprovalsTab({
           </p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '420px', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {pendingTenants.map((t) => {
             const isProcessing = actionLoadingId === t._id;
             const dateStr = t.createdAt

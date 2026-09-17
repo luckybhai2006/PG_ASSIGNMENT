@@ -18,6 +18,7 @@ export default function StatCards({ stats, onFilterStatus, onFilterPriority, act
       color: '#0891b2',
       bg: 'rgba(6, 182, 212, 0.12)',
       isAction: true,
+      isHero: true, // Full width on mobile for staff view
       onClick: onOpenTenants,
     }] : []),
     {
@@ -66,6 +67,7 @@ export default function StatCards({ stats, onFilterStatus, onFilterPriority, act
       bg: '#fef2f2',
       priority: 'Urgent',
       status: 'All', // Show urgent tickets across pending & in-progress
+      isHero: isStaff, // Full width on mobile for staff view to maintain 2-col balance
     },
   ];
 

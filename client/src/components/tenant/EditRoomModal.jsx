@@ -13,6 +13,7 @@ export default function EditRoomModal({
 
   return (
     <div
+      className="modal-backdrop center-dialog-backdrop"
       style={{
         position: 'fixed',
         top: 0,
@@ -30,6 +31,7 @@ export default function EditRoomModal({
       onClick={onClose}
     >
       <div
+        className="modal-content center-dialog-modal"
         style={{
           background: 'var(--bg-card, #ffffff)',
           borderRadius: '14px',

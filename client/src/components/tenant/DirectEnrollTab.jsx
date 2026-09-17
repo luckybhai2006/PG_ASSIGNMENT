@@ -17,26 +17,18 @@ export default function DirectEnrollTab({
   loading,
 }) {
   return (
-    <form
-      onSubmit={onSubmit}
-      style={{
-        background: 'var(--bg-hover, #f8fafc)',
-        padding: '18px',
-        borderRadius: '12px',
-        border: '1px solid var(--border-light, #e2e8f0)',
-      }}
-    >
-      <div style={{ marginBottom: '14px' }}>
-        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>
+    <form onSubmit={onSubmit} className="direct-enroll-form">
+      <div className="direct-enroll-header">
+        <h3 className="direct-enroll-title">
           Enroll Student Directly
         </h3>
-        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted, #64748b)', marginTop: '2px' }}>
+        <p className="direct-enroll-subtitle">
           Students added directly by you are immediately approved and allocated to their room.
         </p>
       </div>
 
-      <div className="grid-2-col" style={{ gap: '12px' }}>
-        <div className="form-group" style={{ marginBottom: '10px' }}>
+      <div className="direct-enroll-grid">
+        <div className="form-group direct-enroll-field">
           <label>Full Name *</label>
           <input
             type="text"
@@ -48,7 +40,7 @@ export default function DirectEnrollTab({
           />
         </div>
 
-        <div className="form-group" style={{ marginBottom: '10px' }}>
+        <div className="form-group direct-enroll-field">
           <label>Room Number *</label>
           {rooms.length > 0 ? (
             <select
@@ -79,7 +71,7 @@ export default function DirectEnrollTab({
           )}
         </div>
 
-        <div className="form-group" style={{ marginBottom: '10px' }}>
+        <div className="form-group direct-enroll-field">
           <label>Email Address *</label>
           <input
             type="email"
@@ -91,7 +83,7 @@ export default function DirectEnrollTab({
           />
         </div>
 
-        <div className="form-group" style={{ marginBottom: '10px' }}>
+        <div className="form-group direct-enroll-field">
           <label>Initial Login Password *</label>
           <input
             type="password"
@@ -103,10 +95,10 @@ export default function DirectEnrollTab({
           />
         </div>
 
-        <div className="form-group" style={{ marginBottom: '10px', gridColumn: 'span 2' }}>
+        <div className="form-group direct-enroll-field direct-enroll-full-width">
           <label>Contact Phone Number</label>
           <input
-            type="text"
+            type="tel"
             className="form-input"
             placeholder="+91 91234 56789"
             value={phone}
@@ -118,11 +110,10 @@ export default function DirectEnrollTab({
       <button
         type="submit"
         disabled={loading}
-        className="btn btn-primary"
-        style={{ width: '100%', marginTop: '8px' }}
+        className="btn btn-primary direct-enroll-submit-btn"
       >
         <UserPlus size={16} />
-        {loading ? 'Adding Tenant...' : 'Add Tenant to PG'}
+        <span>{loading ? 'Adding Tenant...' : 'Add Tenant to PG'}</span>
       </button>
     </form>
   );

@@ -180,20 +180,21 @@ export default function RoomHubTab({
                 }}
                 className="btn"
                 style={{
-                  height: '34px',
-                  padding: '0 14px',
-                  fontSize: '0.8rem',
+                  height: '32px',
+                  padding: '0 9px',
+                  fontSize: '0.76rem',
                   fontWeight: 700,
                   background: showBulkGenerator ? '#4338ca' : 'var(--primary, #4f46e5)',
                   color: '#ffffff',
                   borderRadius: '8px',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '4px',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                <Sparkles size={14} />
-                <span>⚡ 10-Sec Bulk Generator</span>
+                <Sparkles size={13} />
+                <span>⚡ Bulk Generator</span>
               </button>
 
               <button
@@ -204,9 +205,18 @@ export default function RoomHubTab({
                   setShowRenameBlock(false);
                 }}
                 className="btn btn-secondary"
-                style={{ height: '34px', padding: '0 12px', fontSize: '0.8rem', fontWeight: 700 }}
+                style={{
+                  height: '32px',
+                  padding: '0 9px',
+                  fontSize: '0.76rem',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
               >
-                <Plus size={14} />
+                <Plus size={13} />
                 <span>+ Single Room</span>
               </button>
             </>
@@ -222,20 +232,21 @@ export default function RoomHubTab({
               }}
               className="btn btn-secondary"
               style={{
-                height: '34px',
-                padding: '0 12px',
-                fontSize: '0.8rem',
+                height: '32px',
+                padding: '0 9px',
+                fontSize: '0.76rem',
                 fontWeight: 700,
                 background: showRenameBlock ? 'rgba(79, 70, 229, 0.12)' : undefined,
                 borderColor: showRenameBlock ? 'var(--primary, #4f46e5)' : undefined,
                 color: showRenameBlock ? 'var(--primary, #4f46e5)' : undefined,
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
+                gap: '4px',
+                whiteSpace: 'nowrap',
               }}
             >
-              <Tag size={14} />
-              <span>✏️ Rename Block / Wing</span>
+              <Tag size={13} />
+              <span>✏️ Rename Block</span>
             </button>
           )}
         </div>
@@ -245,7 +256,7 @@ export default function RoomHubTab({
           {[
             { key: 'ALL', label: `All (${rooms.length})` },
             { key: 'AVAILABLE', label: `🟢 Available (${rooms.filter((r) => !r.isFull && r.status !== 'maintenance').length})` },
-            { key: 'MAINTENANCE', label: `🟡 Maintenance (${rooms.filter((r) => r.status === 'maintenance').length})` },
+            { key: 'MAINTENANCE', label: `🟡 Maint (${rooms.filter((r) => r.status === 'maintenance').length})` },
             { key: 'FULL', label: `🔴 Full (${rooms.filter((r) => r.isFull && r.status !== 'maintenance').length})` },
           ].map((filter) => (
             <button
@@ -257,8 +268,8 @@ export default function RoomHubTab({
                 color: roomFilterAvailability === filter.key ? 'var(--text-main, #0f172a)' : 'var(--text-muted, #64748b)',
                 border: 'none',
                 borderRadius: '6px',
-                padding: '4px 10px',
-                fontSize: '0.74rem',
+                padding: '3px 7px',
+                fontSize: '0.72rem',
                 fontWeight: roomFilterAvailability === filter.key ? 800 : 600,
                 cursor: 'pointer',
                 boxShadow: roomFilterAvailability === filter.key ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
@@ -386,8 +397,8 @@ export default function RoomHubTab({
             {roomFilterAvailability === 'MAINTENANCE'
               ? 'Abhi aapka koi bhi room Under Maintenance nahi hai. Saare rooms clean aur admission ke liye ready hain.'
               : roomFilterAvailability === 'FULL'
-              ? 'Abhi aapka koi bhi room 100% occupied (full) nahi hai.'
-              : 'Is filter me koi room match nahi hua.'}
+                ? 'Abhi aapka koi bhi room 100% occupied (full) nahi hai.'
+                : 'Is filter me koi room match nahi hua.'}
           </p>
           <button
             type="button"
@@ -405,8 +416,6 @@ export default function RoomHubTab({
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
             gap: '12px',
-            maxHeight: '380px',
-            overflowY: 'auto',
             paddingRight: '2px',
           }}
         >
