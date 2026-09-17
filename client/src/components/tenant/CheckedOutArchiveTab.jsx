@@ -8,13 +8,13 @@ export default function CheckedOutArchiveTab({
 }) {
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
-        <span style={{ fontSize: '0.82rem', color: 'var(--text-muted, #64748b)', fontWeight: 600 }}>
+      <div className="tenant-search-row">
+        <span className="tenant-search-desc">
           Historical record of checked-out students. Active portal access is securely revoked.
         </span>
 
-        <div style={{ position: 'relative', width: '240px' }}>
-          <Search size={14} style={{ position: 'absolute', left: '10px', top: '9px', color: 'var(--text-light, #94a3b8)' }} />
+        <div className="tenant-search-box archive-search-box">
+          <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: 'var(--text-light, #94a3b8)' }} />
           <input
             type="text"
             className="form-input"
@@ -45,97 +45,60 @@ export default function CheckedOutArchiveTab({
           </p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {vacatedTenants.map((t) => (
-            <div
-              key={t._id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 16px',
-                background: 'var(--bg-card, #ffffff)',
-                border: '1px solid var(--border-light, #e2e8f0)',
-                borderRadius: '10px',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
-                flexWrap: 'wrap',
-                gap: '10px',
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main, #0f172a)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <span>{t.name}</span>
-                  <span
-                    style={{
-                      fontSize: '0.68rem',
-                      fontWeight: 700,
-                      padding: '1px 6px',
-                      background: '#f1f5f9',
-                      color: '#475569',
-                      borderRadius: '6px',
-                      border: '1px solid #cbd5e1',
-                    }}
-                  >
-                    Checked Out
-                  </span>
-                  {t.lastRoomNumber && t.lastRoomNumber !== 'None' && (
-                    <span
-                      style={{
-                        fontSize: '0.68rem',
-                        fontWeight: 700,
-                        padding: '1px 6px',
-                        background: '#f8fafc',
-                        color: '#0369a1',
-                        borderRadius: '6px',
-                        border: '1px solid #bae6fd',
-                      }}
-                    >
-                      Former Room {t.lastRoomNumber}
+            <div key={t._id} className="archive-tenant-card">
+              {/* Card Header: Name, Badges & Access Status */}
+              <div className="archive-card-header">
+                <div className="archive-student-info">
+                  <div className="archive-name-row">
+                    <span className="archive-student-name">{t.name}</span>
+                    <span className="archive-status-badge">
+                      Checked Out
                     </span>
-                  )}
-                </div>
-
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted, #64748b)', display: 'flex', gap: '14px', marginTop: '3px', flexWrap: 'wrap' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Mail size={12} /> {t.email}
-                  </span>
-                  {t.phone && (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Phone size={12} /> {t.phone}
-                    </span>
-                  )}
-                  {t.vacatedAt && (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b' }}>
-                      <Calendar size={12} /> Checked out: {new Date(t.vacatedAt).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-
-                {t.vacatedReason && (
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px', fontStyle: 'italic' }}>
-                    Note: "{t.vacatedReason}"
+                    {t.lastRoomNumber && t.lastRoomNumber !== 'None' && (
+                      <span className="archive-room-badge">
+                        Former Room {t.lastRoomNumber}
+                      </span>
+                    )}
                   </div>
-                )}
+
+                  <div className="archive-contact-row">
+                    <span className="archive-contact-item">
+                      <Mail size={12} />
+                      <span>{t.email}</span>
+                    </span>
+                    {t.phone && (
+                      <span className="archive-contact-item">
+                        <Phone size={12} />
+                        <span>{t.phone}</span>
+                      </span>
+                    )}
+                    {t.vacatedAt && (
+                      <span className="archive-contact-item">
+                        <Calendar size={12} />
+                        <span>Checked out: {new Date(t.vacatedAt).toLocaleDateString()}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Security Access Revoked Badge */}
+                <div className="archive-card-top-action">
+                  <span className="archive-access-chip">
+                    <ShieldCheck size={13} color="#059669" />
+                    <span>Access Revoked</span>
+                  </span>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span
-                  style={{
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    padding: '3px 8px',
-                    background: '#f8fafc',
-                    color: '#64748b',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '6px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                >
-                  <ShieldCheck size={12} color="#059669" /> Access Closed
-                </span>
-              </div>
+              {/* Departure Reason Box (if provided) */}
+              {t.vacatedReason && (
+                <div className="archive-reason-box">
+                  <span className="archive-reason-label">Departure Note:</span>
+                  <span className="archive-reason-text">"{t.vacatedReason}"</span>
+                </div>
+              )}
             </div>
           ))}
         </div>

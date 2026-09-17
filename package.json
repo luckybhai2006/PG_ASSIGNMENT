@@ -7,7 +7,18 @@
     "client": "npm --prefix client run dev",
     "seed": "npm --prefix server run seed"
   },
-  "keywords": ["pg", "complaint-system", "mern", "vite", "mongodb", "express", "react"],
+  "keywords": [
+    "pg",
+    "complaint-system",
+    "mern",
+    "vite",
+    "mongodb",
+    "express",
+    "react"
+  ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "madge": "^8.0.0"
+  }
 }

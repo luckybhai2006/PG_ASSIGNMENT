@@ -106,7 +106,7 @@ export default function AcceptInviteBanner() {
         color: 'var(--text-muted, #64748b)',
         border: '1px dashed var(--border-light, #cbd5e1)',
       }}>
-        ℹ️ <strong>Staff Privileges:</strong> Manage tenants, file complaints on tenants' behalf, and update complaint status resolution.
+        <strong>Staff Privileges:</strong> Manage tenants, file complaints on tenants' behalf, and update complaint status resolution.
       </div>
     </div>
   );

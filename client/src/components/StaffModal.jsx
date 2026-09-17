@@ -440,197 +440,99 @@ export default function StaffModal({ isOpen, onClose }) {
           </form>
 
           {/* Current Staff List */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <h3 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
-                Appointed Staff Team ({filteredStaff.length})
-              </h3>
-              <span style={{ fontSize: '0.74rem', color: 'var(--text-muted, #64748b)' }}>
-                Click on any permission chip to toggle live
+          <div className="staff-list-section">
+            <div className="staff-list-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ fontSize: '0.94rem', fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
+                  Appointed Staff Team
+                </h3>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    background: 'var(--primary-light, #eef2ff)',
+                    color: 'var(--primary, #4f46e5)',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                  }}
+                >
+                  {filteredStaff.length}
+                </span>
+              </div>
+              <span className="staff-list-hint" style={{ fontSize: '0.74rem', color: 'var(--text-muted, #64748b)' }}>
+                Tap any permission chip to toggle live
               </span>
             </div>
 
             {/* Branch Filter Tabs for Multi-Branch Owners */}
             {myPGs && myPGs.length > 1 && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                marginBottom: '14px',
-                overflowX: 'auto',
-                scrollbarWidth: 'none',
-                padding: '2px 0',
-              }}>
-                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted, #64748b)', whiteSpace: 'nowrap', marginRight: '2px' }}>
+              <div className="staff-branch-tabs">
+                <span className="staff-branch-label">
                   Branch:
                 </span>
-                {myPGs.map((b) => {
-                  const isSelected = branchFilter === b._id;
-                  const count = staffList.filter((s) => (s.pgId?._id || s.pgId)?.toString() === b._id.toString()).length;
-                  return (
-                    <button
-                      key={b._id}
-                      type="button"
-                      onClick={() => setBranchFilter(b._id)}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '4px 9px',
-                        borderRadius: '8px',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        background: isSelected ? 'var(--primary, #4f46e5)' : 'var(--bg-card, #ffffff)',
-                        color: isSelected ? '#ffffff' : 'var(--text-main, #0f172a)',
-                        border: isSelected ? '1px solid var(--primary, #4f46e5)' : '1px solid var(--border-light, #e2e8f0)',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <span>{b.pgType === 'girls' ? '🌸' : '🔷'} {b.name}</span>
-                      <span style={{
-                        background: isSelected ? 'rgba(255,255,255,0.25)' : 'var(--bg-hover, #f1f5f9)',
-                        color: isSelected ? '#ffffff' : 'var(--text-muted, #64748b)',
-                        fontSize: '0.65rem',
-                        padding: '1px 5px',
-                        borderRadius: '10px',
-                      }}>
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
+                <div className="staff-branch-scroll">
+                  {myPGs.map((b) => {
+                    const isSelected = branchFilter === b._id;
+                    const count = staffList.filter((s) => (s.pgId?._id || s.pgId)?.toString() === b._id.toString()).length;
+                    return (
+                      <button
+                        key={b._id}
+                        type="button"
+                        onClick={() => setBranchFilter(b._id)}
+                        className={`staff-branch-pill ${isSelected ? 'active' : ''}`}
+                      >
+                        <span>{b.name}</span>
+                        <span className="staff-branch-pill-count">
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
 
-                <button
-                  type="button"
-                  onClick={() => setBranchFilter('ALL')}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    padding: '4px 9px',
-                    borderRadius: '8px',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    background: branchFilter === 'ALL' ? 'var(--primary, #4f46e5)' : 'var(--bg-card, #ffffff)',
-                    color: branchFilter === 'ALL' ? '#ffffff' : 'var(--text-main, #0f172a)',
-                    border: branchFilter === 'ALL' ? '1px solid var(--primary, #4f46e5)' : '1px solid var(--border-light, #e2e8f0)',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <span>🌐 All Staff</span>
-                  <span style={{
-                    background: branchFilter === 'ALL' ? 'rgba(255,255,255,0.25)' : 'var(--bg-hover, #f1f5f9)',
-                    color: branchFilter === 'ALL' ? '#ffffff' : 'var(--text-muted, #64748b)',
-                    fontSize: '0.65rem',
-                    padding: '1px 5px',
-                    borderRadius: '10px',
-                  }}>
-                    {staffList.length}
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setBranchFilter('ALL')}
+                    className={`staff-branch-pill ${branchFilter === 'ALL' ? 'active' : ''}`}
+                  >
+                    <span>All Staff</span>
+                    <span className="staff-branch-pill-count">
+                      {staffList.length}
+                    </span>
+                  </button>
+                </div>
               </div>
             )}
 
             {filteredStaff.length === 0 ? (
-              <div
-                style={{
-                  fontSize: '0.85rem',
-                  color: 'var(--text-muted, #64748b)',
-                  textAlign: 'center',
-                  padding: '24px',
-                  background: '#f8fafc',
-                  borderRadius: '10px',
-                  border: '1px dashed #cbd5e1',
-                }}
-              >
+              <div className="staff-empty-state">
                 No staff editors appointed to {activeBranchName} yet. Use the form above to add or shift staff here.
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div className="staff-cards-list">
                 {filteredStaff.map((st) => {
                   const branchName = st.pgId?.name || 'Unassigned / Primary';
                   const branchType = st.pgId?.pgType === 'girls' ? 'Girls PG' : 'Boys Hostel/PG';
                   return (
-                    <div
-                      key={st._id}
-                      style={{
-                        padding: '12px 14px',
-                        background: 'var(--bg-card, #ffffff)',
-                        border: '1px solid var(--border-light, #e2e8f0)',
-                        borderRadius: '10px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-main, #0f172a)' }}>
-                              {st.name}
-                            </span>
-                            {myPGs && myPGs.length > 1 ? (
-                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                <select
-                                  value={st.pgId?._id || st.pgId}
-                                  onChange={(e) => handleTransferBranch(st, e.target.value)}
-                                  disabled={actionLoadingId === `branch-${st._id}`}
-                                  style={{
-                                    fontSize: '0.72rem',
-                                    fontWeight: 700,
-                                    padding: '2px 7px',
-                                    borderRadius: '6px',
-                                    border: '1.5px solid rgba(79, 70, 229, 0.3)',
-                                    background: 'rgba(79, 70, 229, 0.06)',
-                                    color: 'var(--primary, #4f46e5)',
-                                    cursor: 'pointer',
-                                  }}
-                                  title="Click to shift this staff member to another branch"
-                                >
-                                  {myPGs.map((b) => (
-                                    <option key={b._id} value={b._id}>
-                                      🏢 {b.name} ({b.pgType === 'girls' ? 'Girls' : 'Boys'})
-                                    </option>
-                                  ))}
-                                </select>
-                                {actionLoadingId === `branch-${st._id}` && (
-                                  <Loader2 size={12} className="animate-spin" color="var(--primary, #4f46e5)" />
-                                )}
-                              </div>
-                            ) : (
-                              <span
-                                style={{
-                                  fontSize: '0.7rem',
-                                  fontWeight: 700,
-                                  background: '#f1f5f9',
-                                  color: '#334155',
-                                  padding: '1px 7px',
-                                  borderRadius: '6px',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                }}
-                              >
-                                <Building2 size={11} color="#64748b" /> {branchName} ({branchType})
-                              </span>
-                            )}
+                    <div key={st._id} className="staff-card">
+                      {/* Card Header: User info + Status & Actions */}
+                      <div className="staff-card-header">
+                        <div className="staff-card-info">
+                          <div className="staff-card-name">
+                            {st.name}
                           </div>
-                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted, #64748b)', marginTop: '2px' }}>
-                            {st.email} {st.phone && `• ${st.phone}`}
+                          <div className="staff-card-contacts">
+                            <span>{st.email}</span>
+                            {st.phone && <span>• {st.phone}</span>}
                           </div>
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="staff-card-actions">
                           {st.inviteStatus === 'accepted' ? (
-                            <span className="badge badge-resolved" style={{ fontSize: '0.7rem' }}>
+                            <span className="badge badge-resolved staff-status-badge">
                               <CheckCircle size={11} /> Accepted
                             </span>
                           ) : (
-                            <span className="badge badge-pending" style={{ fontSize: '0.7rem' }}>
+                            <span className="badge badge-pending staff-status-badge">
                               <Clock size={11} /> Pending
                             </span>
                           )}
@@ -640,71 +542,73 @@ export default function StaffModal({ isOpen, onClose }) {
                             onClick={() => handleDeleteStaff(st._id, st.name)}
                             disabled={actionLoadingId === `delete-${st._id}`}
                             title="Revoke and Remove Staff Member"
-                            style={{
-                              background: '#fef2f2',
-                              border: '1px solid #fecaca',
-                              color: '#dc2626',
-                              padding: '5px 8px',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
+                            className="staff-delete-btn"
                           >
                             <Trash2 size={13} />
                           </button>
                         </div>
                       </div>
 
-                      {/* Interactive Permission Badges */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', paddingTop: '4px' }}>
-                        <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted, #64748b)', textTransform: 'uppercase' }}>
-                          Permissions:
+                      {/* Branch Assignment Row */}
+                      <div className="staff-card-branch-row">
+                        <span className="staff-branch-row-label">
+                          <Building2 size={12} color="var(--primary, #4f46e5)" />
+                          <span>Branch:</span>
                         </span>
-                        {PERMISSION_CONFIG.map((p) => {
-                          const Icon = p.icon;
-                          const hasPerm = st.permissions?.[p.key] !== false;
-                          const isToggling = actionLoadingId === `${st._id}-${p.key}`;
-                          return (
-                            <button
-                              key={p.key}
-                              type="button"
-                              onClick={() => handleToggleStaffPermission(st, p.key)}
-                              disabled={isToggling}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                fontSize: '0.72rem',
-                                fontWeight: 700,
-                                padding: '4px 10px',
-                                borderRadius: '20px',
-                                border: hasPerm ? '1.5px solid #16a34a' : '1.5px solid #cbd5e1',
-                                background: hasPerm ? '#dcfce7' : '#f1f5f9',
-                                color: hasPerm ? '#15803d' : '#64748b',
-                                cursor: isToggling ? 'not-allowed' : 'pointer',
-                                transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
-                                opacity: isToggling ? 0.6 : 1,
-                                transform: hasPerm ? 'scale(1)' : 'scale(0.97)',
-                                boxShadow: hasPerm ? '0 1px 3px rgba(22, 163, 74, 0.15)' : 'none',
-                              }}
-                              title={`Click to ${hasPerm ? 'DISABLE / REVOKE' : 'ENABLE / GRANT'} ${p.label}`}
+                        {myPGs && myPGs.length > 1 ? (
+                          <div className="staff-branch-select-wrap">
+                            <select
+                              value={st.pgId?._id || st.pgId}
+                              onChange={(e) => handleTransferBranch(st, e.target.value)}
+                              disabled={actionLoadingId === `branch-${st._id}`}
+                              className="staff-branch-select"
+                              title="Click to shift this staff member to another branch"
                             >
-                              <Icon size={12} color={hasPerm ? '#15803d' : '#94a3b8'} />
-                              <span>{p.label}</span>
-                              <span
-                                style={{
-                                  fontSize: '0.7rem',
-                                  fontWeight: 800,
-                                  color: hasPerm ? '#15803d' : '#94a3b8',
-                                }}
+                              {myPGs.map((b) => (
+                                <option key={b._id} value={b._id}>
+                                  {b.name} ({b.pgType === 'girls' ? 'Girls' : 'Boys'})
+                                </option>
+                              ))}
+                            </select>
+                            {actionLoadingId === `branch-${st._id}` && (
+                              <Loader2 size={12} className="animate-spin staff-branch-spinner" color="var(--primary, #4f46e5)" />
+                            )}
+                          </div>
+                        ) : (
+                          <span className="staff-single-branch-chip">
+                            {branchName} ({branchType})
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Interactive Permission Chips */}
+                      <div className="staff-card-permissions-section">
+                        <div className="staff-permissions-title">
+                          Operational Permissions:
+                        </div>
+                        <div className="staff-permissions-grid">
+                          {PERMISSION_CONFIG.map((p) => {
+                            const Icon = p.icon;
+                            const hasPerm = st.permissions?.[p.key] !== false;
+                            const isToggling = actionLoadingId === `${st._id}-${p.key}`;
+                            return (
+                              <button
+                                key={p.key}
+                                type="button"
+                                onClick={() => handleToggleStaffPermission(st, p.key)}
+                                disabled={isToggling}
+                                className={`staff-perm-chip ${hasPerm ? 'active' : 'inactive'}`}
+                                title={`Click to ${hasPerm ? 'DISABLE / REVOKE' : 'ENABLE / GRANT'} ${p.label}`}
                               >
-                                {hasPerm ? '✓' : '✕'}
-                              </span>
-                            </button>
-                          );
-                        })}
+                                <Icon size={12} className="staff-perm-icon" />
+                                <span className="staff-perm-label">{p.label}</span>
+                                <span className="staff-perm-check">
+                                  {hasPerm ? '✓' : '✕'}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   );

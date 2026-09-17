@@ -841,7 +841,7 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded, initialTab
               }}
             >
               <Building2 size={15} />
-              <span>🏢 Rooms Hub</span>
+              <span>Rooms Hub</span>
               <span
                 style={{
                   fontSize: '0.7rem',

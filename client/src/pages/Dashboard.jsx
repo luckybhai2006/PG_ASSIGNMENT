@@ -310,7 +310,7 @@ export default function Dashboard() {
               marginTop: '4px',
               wordBreak: 'break-word',
             }}>
-              {getGreeting()}, {user?.name?.split(' ')[0]} 👋
+              {getGreeting()}, {user?.name?.split(' ')[0]}
             </h1>
             <p style={{ color: 'var(--text-muted, #64748b)', fontSize: '0.82rem', marginTop: '2px' }}>
               {isStaff

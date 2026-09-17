@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
             if (now - lastToastTime > 1500) {
               lastToastTime = now;
               showToast({
-                title: '🛡️ Permissions Updated',
+                title: 'Permissions Updated',
                 message: data.message || 'Your operational permissions were updated live by the PG Owner.',
                 type: 'warning',
                 duration: 5000,
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
             setPg(data.pg);
             setUser((prev) => (prev ? { ...prev, pgId: data.pg._id } : prev));
             showToast({
-              title: '🏢 Branch Transferred',
+              title: 'Branch Transferred',
               message: data.message || `You have been shifted to branch "${data.pg.name}" by the PG Owner.`,
               type: 'info',
               duration: 6000,
@@ -104,6 +104,12 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     loadUser();
   }, []);
+
+  // Synchronize active PG facility type (girls, boys, co-ed) on root element for dynamic subtle theme styling
+  useEffect(() => {
+    const pgType = pg?.pgType || 'boys';
+    document.documentElement.setAttribute('data-pg-type', pgType);
+  }, [pg?.pgType]);
 
   const login = async (email, password) => {
     const data = await api.login({ email, password });

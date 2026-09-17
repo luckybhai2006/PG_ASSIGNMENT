@@ -77,25 +77,25 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
   const getPgTypeBadge = (type) => {
     if (type === 'girls') {
       return {
-        label: '🌸 Girls PG',
-        bg: 'rgba(236, 72, 153, 0.12)',
-        color: '#db2777',
-        border: '1px solid rgba(236, 72, 153, 0.3)',
+        label: 'Girls PG',
+        bg: 'rgba(190, 24, 93, 0.12)',
+        color: '#be185d',
+        border: '1px solid rgba(190, 24, 93, 0.28)',
       };
     }
     if (type === 'co-ed') {
       return {
-        label: '👥 Co-Ed PG',
-        bg: 'rgba(139, 92, 246, 0.12)',
+        label: 'Co-Ed PG',
+        bg: 'rgba(124, 58, 237, 0.12)',
         color: '#7c3aed',
-        border: '1px solid rgba(139, 92, 246, 0.3)',
+        border: '1px solid rgba(124, 58, 237, 0.28)',
       };
     }
     return {
-      label: '🔷 Boys PG',
-      bg: 'rgba(59, 130, 246, 0.12)',
-      color: '#2563eb',
-      border: '1px solid rgba(59, 130, 246, 0.3)',
+      label: 'Boys PG',
+      bg: 'rgba(79, 70, 229, 0.12)',
+      color: '#4f46e5',
+      border: '1px solid rgba(79, 70, 229, 0.28)',
     };
   };
 
@@ -740,9 +740,9 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
                 <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Branch Facility Category *</label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                   {[
-                    { id: 'girls', label: '👧 Girls PG', color: '#ec4899', bg: 'rgba(236, 72, 153, 0.08)' },
-                    { id: 'boys', label: '👦 Boys PG', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.08)' },
-                    { id: 'co-ed', label: '👥 Co-Ed PG', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.08)' },
+                    { id: 'girls', label: 'Girls PG', color: '#be185d', bg: 'rgba(190, 24, 93, 0.08)' },
+                    { id: 'boys', label: 'Boys PG', color: '#4f46e5', bg: 'rgba(79, 70, 229, 0.08)' },
+                    { id: 'co-ed', label: 'Co-Ed PG', color: '#7c3aed', bg: 'rgba(124, 58, 237, 0.08)' },
                   ].map((t) => (
                     <button
                       key={t.id}

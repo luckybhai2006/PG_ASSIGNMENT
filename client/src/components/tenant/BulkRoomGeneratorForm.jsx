@@ -23,6 +23,7 @@ export default function BulkRoomGeneratorForm({
   return (
     <form
       onSubmit={onSubmit}
+      className="bulk-room-form"
       style={{
         background: 'var(--bg-hover, #f8fafc)',
         border: '1.5px solid var(--primary, #4f46e5)',
@@ -134,20 +135,7 @@ export default function BulkRoomGeneratorForm({
       </div>
 
       {/* Dynamic Preview Info */}
-      <div
-        style={{
-          marginTop: '12px',
-          padding: '8px 12px',
-          borderRadius: '8px',
-          background: 'rgba(79, 70, 229, 0.08)',
-          border: '1px solid rgba(79, 70, 229, 0.2)',
-          fontSize: '0.76rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          color: 'var(--text-main, #0f172a)',
-        }}
-      >
+      <div className="bulk-room-preview">
         <Info size={14} color="var(--primary, #4f46e5)" style={{ flexShrink: 0 }} />
         <span>
           Will generate <strong>{previewTotalRooms} rooms</strong> with <strong>{previewTotalBeds} total bed capacity</strong>{' '}
@@ -165,20 +153,18 @@ export default function BulkRoomGeneratorForm({
         </span>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>
+      <div className="bulk-room-actions">
         <button
           type="button"
           onClick={onClose}
-          className="btn btn-secondary"
-          style={{ height: '34px', fontSize: '0.78rem' }}
+          className="btn btn-secondary bulk-room-cancel-btn"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={generatingRooms}
-          className="btn btn-primary"
-          style={{ height: '34px', fontSize: '0.8rem', padding: '0 16px' }}
+          className="btn btn-primary bulk-room-submit-btn"
         >
           {generatingRooms ? (
             <>
@@ -186,7 +172,7 @@ export default function BulkRoomGeneratorForm({
               <span>Generating...</span>
             </>
           ) : (
-            <span>⚡ Generate All {previewTotalRooms} Rooms</span>
+            <span>Generate All {previewTotalRooms} Rooms</span>
           )}
         </button>
       </div>

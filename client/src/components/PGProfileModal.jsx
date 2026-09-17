@@ -193,9 +193,9 @@ export default function PGProfileModal({ isOpen, onClose }) {
             <label style={{ display: 'block', marginBottom: '8px' }}>PG Facility Category *</label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
               {[
-                { id: 'boys', label: '👦 Boys PG', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.08)' },
-                { id: 'girls', label: '👧 Girls PG', color: '#ec4899', bg: 'rgba(236, 72, 153, 0.08)' },
-                { id: 'co-ed', label: '👥 Co-Ed PG', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.08)' },
+                { id: 'boys', label: 'Boys PG', color: '#4f46e5', bg: 'rgba(79, 70, 229, 0.08)' },
+                { id: 'girls', label: 'Girls PG', color: '#be185d', bg: 'rgba(190, 24, 93, 0.08)' },
+                { id: 'co-ed', label: 'Co-Ed PG', color: '#7c3aed', bg: 'rgba(124, 58, 237, 0.08)' },
               ].map((t) => (
                 <button
                   key={t.id}

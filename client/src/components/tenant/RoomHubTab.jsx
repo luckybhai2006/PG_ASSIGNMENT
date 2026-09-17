@@ -1,5 +1,16 @@
 import React from 'react';
-import { Sparkles, Plus, Tag, Building2, Loader2 } from 'lucide-react';
+import {
+  Sparkles,
+  Plus,
+  Tag,
+  Building2,
+  Loader2,
+  DoorOpen,
+  Bed,
+  Users,
+  CheckCircle2,
+  Wrench,
+} from 'lucide-react';
 import BulkRoomGeneratorForm from './BulkRoomGeneratorForm';
 import SingleRoomAddForm from './SingleRoomAddForm';
 import RenameBlockWingForm from './RenameBlockWingForm';
@@ -58,6 +69,8 @@ export default function RoomHubTab({
   setOldBlockName,
   newBlockName,
   setNewBlockName,
+  oldWingName,
+  setOldWingName,
   newWingName,
   setNewWingName,
   oldPrefix,
@@ -76,91 +89,63 @@ export default function RoomHubTab({
   return (
     <div>
       {/* Stat Chips Header */}
-      <div
-        className="tenant-stat-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-          gap: '10px',
-          marginBottom: '16px',
-        }}
-      >
-        <div
-          style={{
-            background: 'var(--bg-card, #ffffff)',
-            border: '1px solid var(--border-light, #e2e8f0)',
-            padding: '12px 14px',
-            borderRadius: '10px',
-          }}
-        >
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #64748b)', fontWeight: 700, textTransform: 'uppercase' }}>
-            Total Rooms
+      <div className="room-stat-grid">
+        <div className="room-stat-chip total-rooms">
+          <div className="room-stat-top">
+            <span className="room-stat-label">Total Rooms</span>
+            <div className="room-stat-icon-wrap">
+              <DoorOpen size={13} />
+            </div>
           </div>
-          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main, #0f172a)', marginTop: '2px' }}>
+          <div className="room-stat-val">
             {roomStats.totalRooms || rooms.length}
           </div>
         </div>
 
-        <div
-          style={{
-            background: 'var(--bg-card, #ffffff)',
-            border: '1px solid var(--border-light, #e2e8f0)',
-            padding: '12px 14px',
-            borderRadius: '10px',
-          }}
-        >
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #64748b)', fontWeight: 700, textTransform: 'uppercase' }}>
-            Total Beds
+        <div className="room-stat-chip total-beds">
+          <div className="room-stat-top">
+            <span className="room-stat-label">Total Beds</span>
+            <div className="room-stat-icon-wrap">
+              <Bed size={13} />
+            </div>
           </div>
-          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary, #4f46e5)', marginTop: '2px' }}>
+          <div className="room-stat-val">
             {roomStats.totalBeds}
           </div>
         </div>
 
-        <div
-          style={{
-            background: 'var(--bg-card, #ffffff)',
-            border: '1px solid var(--border-light, #e2e8f0)',
-            padding: '12px 14px',
-            borderRadius: '10px',
-          }}
-        >
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #64748b)', fontWeight: 700, textTransform: 'uppercase' }}>
-            Occupied Beds
+        <div className="room-stat-chip occupied-beds">
+          <div className="room-stat-top">
+            <span className="room-stat-label">Occupied Beds</span>
+            <div className="room-stat-icon-wrap">
+              <Users size={13} />
+            </div>
           </div>
-          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#b45309', marginTop: '2px' }}>
+          <div className="room-stat-val">
             {roomStats.occupiedBeds}
           </div>
         </div>
 
-        <div
-          style={{
-            border: '1px solid #a7f3d0',
-            padding: '12px 14px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.04) 100%)',
-          }}
-        >
-          <div style={{ fontSize: '0.72rem', color: '#047857', fontWeight: 700, textTransform: 'uppercase' }}>
-            Available Beds
+        <div className="room-stat-chip available-beds">
+          <div className="room-stat-top">
+            <span className="room-stat-label">Available Beds</span>
+            <div className="room-stat-icon-wrap">
+              <CheckCircle2 size={13} />
+            </div>
           </div>
-          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
+          <div className="room-stat-val">
             {roomStats.availableBeds}
           </div>
         </div>
 
-        <div
-          style={{
-            border: '1px solid #fed7aa',
-            padding: '12px 14px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(234, 88, 12, 0.04) 100%)',
-          }}
-        >
-          <div style={{ fontSize: '0.72rem', color: '#c2410c', fontWeight: 700, textTransform: 'uppercase' }}>
-            Under Maintenance
+        <div className="room-stat-chip maintenance-rooms">
+          <div className="room-stat-top">
+            <span className="room-stat-label">In Maintenance</span>
+            <div className="room-stat-icon-wrap">
+              <Wrench size={13} />
+            </div>
           </div>
-          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ea580c', marginTop: '2px' }}>
+          <div className="room-stat-val">
             {roomStats.maintenanceRooms ?? rooms.filter((r) => r.status === 'maintenance').length}
           </div>
         </div>
@@ -194,7 +179,7 @@ export default function RoomHubTab({
                 }}
               >
                 <Sparkles size={13} />
-                <span>⚡ Bulk Generator</span>
+                <span>Bulk Generator</span>
               </button>
 
               <button
@@ -246,7 +231,7 @@ export default function RoomHubTab({
               }}
             >
               <Tag size={13} />
-              <span>✏️ Rename Block</span>
+              <span>Rename Block</span>
             </button>
           )}
         </div>
@@ -255,9 +240,9 @@ export default function RoomHubTab({
         <div className="tenant-avail-filter">
           {[
             { key: 'ALL', label: `All (${rooms.length})` },
-            { key: 'AVAILABLE', label: `🟢 Available (${rooms.filter((r) => !r.isFull && r.status !== 'maintenance').length})` },
-            { key: 'MAINTENANCE', label: `🟡 Maint (${rooms.filter((r) => r.status === 'maintenance').length})` },
-            { key: 'FULL', label: `🔴 Full (${rooms.filter((r) => r.isFull && r.status !== 'maintenance').length})` },
+            { key: 'AVAILABLE', label: `Available (${rooms.filter((r) => !r.isFull && r.status !== 'maintenance').length})` },
+            { key: 'MAINTENANCE', label: `Maintenance (${rooms.filter((r) => r.status === 'maintenance').length})` },
+            { key: 'FULL', label: `Full (${rooms.filter((r) => r.isFull && r.status !== 'maintenance').length})` },
           ].map((filter) => (
             <button
               key={filter.key}
@@ -376,7 +361,7 @@ export default function RoomHubTab({
             className="btn btn-primary"
             style={{ height: '34px', fontSize: '0.8rem', padding: '0 14px' }}
           >
-            <Sparkles size={14} /> ⚡ 10-Sec Bulk Generator
+            <Sparkles size={14} /> 10-Sec Bulk Generator
           </button>
         </div>
       ) : filteredRooms.length === 0 ? (

@@ -1154,7 +1154,7 @@ export default function AuthPage() {
                           </option>
                         ) : (
                           filteredPGList.map((p) => {
-                            const badge = p.pgType === 'girls' ? '🌸 [Girls PG] ' : p.pgType === 'boys' ? '🔷 [Boys PG] ' : '👥 [Co-Ed] ';
+                            const badge = p.pgType === 'girls' ? '[Girls PG] ' : p.pgType === 'boys' ? '[Boys PG] ' : '[Co-Ed] ';
                             return (
                               <option key={p._id} value={p._id}>
                                 {badge}{p.name} {p.address ? `(${p.address})` : ''}
@@ -1375,7 +1375,7 @@ export default function AuthPage() {
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      <span>👦 Boys PG</span>
+                      <span>Boys PG</span>
                     </button>
 
                     <button
@@ -1384,9 +1384,9 @@ export default function AuthPage() {
                       style={{
                         padding: '8px 6px',
                         borderRadius: '10px',
-                        border: regPgType === 'girls' ? '2px solid #ec4899' : '1px solid var(--border-light, #e2e8f0)',
-                        background: regPgType === 'girls' ? 'rgba(236, 72, 153, 0.12)' : 'var(--bg-hover, #f8fafc)',
-                        color: regPgType === 'girls' ? '#db2777' : 'var(--text-muted, #64748b)',
+                        border: regPgType === 'girls' ? '2px solid #be185d' : '1px solid var(--border-light, #e2e8f0)',
+                        background: regPgType === 'girls' ? 'rgba(190, 24, 93, 0.12)' : 'var(--bg-hover, #f8fafc)',
+                        color: regPgType === 'girls' ? '#be185d' : 'var(--text-muted, #64748b)',
                         fontWeight: regPgType === 'girls' ? 800 : 600,
                         fontSize: '0.78rem',
                         cursor: 'pointer',
@@ -1397,7 +1397,7 @@ export default function AuthPage() {
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      <span>👧 Girls PG</span>
+                      <span>Girls PG</span>
                     </button>
 
                     <button
@@ -1406,8 +1406,8 @@ export default function AuthPage() {
                       style={{
                         padding: '8px 6px',
                         borderRadius: '10px',
-                        border: regPgType === 'co-ed' ? '2px solid #8b5cf6' : '1px solid var(--border-light, #e2e8f0)',
-                        background: regPgType === 'co-ed' ? 'rgba(139, 92, 246, 0.12)' : 'var(--bg-hover, #f8fafc)',
+                        border: regPgType === 'co-ed' ? '2px solid #7c3aed' : '1px solid var(--border-light, #e2e8f0)',
+                        background: regPgType === 'co-ed' ? 'rgba(124, 58, 237, 0.12)' : 'var(--bg-hover, #f8fafc)',
                         color: regPgType === 'co-ed' ? '#7c3aed' : 'var(--text-muted, #64748b)',
                         fontWeight: regPgType === 'co-ed' ? 800 : 600,
                         fontSize: '0.78rem',
@@ -1419,7 +1419,7 @@ export default function AuthPage() {
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      <span>👥 Co-Ed</span>
+                      <span>Co-Ed PG</span>
                     </button>
                   </div>
                 </div>
