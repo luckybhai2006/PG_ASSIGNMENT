@@ -2541,6 +2541,60 @@ body:has(.modal-backdrop) {
   .room-stat-chip.maintenance-rooms .room-stat-top {
     gap: 8px !important;
   }
+
+  /* Complaint Card Mobile Responsive */
+  .complaint-card-content {
+    padding: 12px 10px 12px 12px !important;
+  }
+
+  .complaint-header-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .complaint-meta-chips {
+    width: 100% !important;
+    gap: 5px !important;
+  }
+
+  .complaint-header-actions {
+    width: 100% !important;
+    justify-content: space-between !important;
+    padding-top: 2px !important;
+  }
+
+  .complaint-update-btn {
+    flex: 1 1 auto !important;
+    justify-content: center !important;
+    height: 32px !important;
+  }
+
+  .complaint-card-title {
+    font-size: 0.96rem !important;
+  }
+
+  .complaint-card-desc {
+    font-size: 0.82rem !important;
+    padding: 8px 10px !important;
+  }
+
+  .complaint-card-footer {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .complaint-footer-left {
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+
+  .complaint-timeline-toggle {
+    width: 100% !important;
+    justify-content: center !important;
+    height: 32px !important;
+  }
 }
 
 /* =========================================================
@@ -2866,4 +2920,532 @@ body:has(.modal-backdrop) {
   background: rgba(99, 102, 241, 0.1) !important;
   border-color: rgba(99, 102, 241, 0.25) !important;
   color: #f1f5f9 !important;
+}
+
+/* =========================================================
+   PREMIUM COMPLAINT CARD REDESIGN STYLES
+   ========================================================= */
+.complaint-card-container {
+  background: var(--bg-card, #ffffff);
+  border-radius: 14px;
+  border: 1px solid var(--border-light, #e2e8f0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.complaint-card-container:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+.complaint-card-accent-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  z-index: 1;
+}
+
+.complaint-card-content {
+  padding: 14px 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.complaint-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.complaint-meta-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.complaint-ticket-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted, #475569);
+  background: var(--bg-hover, #f1f5f9);
+  padding: 3px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+}
+
+.complaint-room-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+}
+
+.complaint-category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--bg-hover, #f8fafc);
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.complaint-priority-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.complaint-priority-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.complaint-priority-chip.priority-urgent {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+.complaint-priority-chip.priority-urgent .complaint-priority-dot { background: #dc2626; }
+
+.complaint-priority-chip.priority-high {
+  background: #ffedd5;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
+}
+.complaint-priority-chip.priority-high .complaint-priority-dot { background: #ea580c; }
+
+.complaint-priority-chip.priority-medium {
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+.complaint-priority-chip.priority-medium .complaint-priority-dot { background: #d97706; }
+
+.complaint-priority-chip.priority-low {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+.complaint-priority-chip.priority-low .complaint-priority-dot { background: #94a3b8; }
+
+.complaint-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.complaint-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.complaint-status-badge.status-pending {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+.complaint-status-badge.status-inprogress {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+.complaint-status-badge.status-resolved {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+.complaint-status-badge.status-rejected {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+.complaint-status-badge.status-default {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.complaint-update-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  font-size: 0.76rem;
+  height: 30px;
+  border-radius: 7px;
+  font-weight: 700;
+  background: var(--bg-card, #ffffff);
+  border: 1.5px solid var(--primary, #4f46e5);
+  color: var(--primary, #4f46e5);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.complaint-update-btn:hover {
+  background: var(--primary, #4f46e5);
+  color: #ffffff;
+}
+
+.complaint-card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main, #0f172a);
+  letter-spacing: -0.01em;
+  margin: 6px 0 8px;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.complaint-card-desc {
+  color: var(--text-muted, #475569);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  background: var(--bg-hover, #f8fafc);
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light, #f1f5f9);
+  margin: 6px 0 10px;
+  word-break: break-word;
+}
+
+.complaint-remarks-box {
+  margin: 8px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  word-break: break-word;
+}
+
+.complaint-remarks-box.is-resolved {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.complaint-remarks-box.is-inprogress {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+.complaint-remarks-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 800;
+  margin-bottom: 3px;
+}
+
+.complaint-remarks-text {
+  line-height: 1.45;
+}
+
+.complaint-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light, #f1f5f9);
+  font-size: 0.76rem;
+  color: var(--text-muted, #64748b);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.complaint-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.complaint-tenant-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-main, #1e293b);
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.complaint-tenant-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary, #4f46e5) 0%, #818cf8 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.68rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.complaint-staff-badge {
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: 0.68rem;
+}
+
+.complaint-date-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-light, #94a3b8);
+}
+
+.complaint-timeline-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary, #4f46e5);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--bg-hover, #f8fafc);
+  border: 1px solid var(--border-light, #e2e8f0);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.complaint-timeline-toggle:hover {
+  background: var(--primary-light, #eef2ff);
+  border-color: rgba(79, 70, 229, 0.3);
+}
+
+.complaint-timeline-wrapper {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: var(--bg-hover, #f8fafc);
+  border-radius: 10px;
+  border: 1px solid var(--border-light, #e2e8f0);
+  animation: fadeIn 0.15s ease-out;
+}
+
+.complaint-timeline-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted, #475569);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.complaint-timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.complaint-timeline-item {
+  display: flex;
+  gap: 10px;
+  position: relative;
+}
+
+.complaint-timeline-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.complaint-timeline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary, #4f46e5);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+}
+
+.complaint-timeline-dot.is-resolved {
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.complaint-timeline-line {
+  width: 2px;
+  flex: 1;
+  background: var(--border-light, #e2e8f0);
+  margin: 3px 0;
+}
+
+.complaint-timeline-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.complaint-timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.complaint-timeline-status {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--text-main, #0f172a);
+}
+
+.complaint-timeline-author {
+  font-size: 0.74rem;
+  color: var(--text-muted, #64748b);
+}
+
+.complaint-timeline-time {
+  font-size: 0.68rem;
+  color: var(--text-light, #94a3b8);
+  margin-left: auto;
+}
+
+.complaint-timeline-note {
+  font-size: 0.78rem;
+  color: var(--text-muted, #475569);
+  margin-top: 3px;
+  word-break: break-word;
+}
+
+/* =========================================================
+   DARK MODE FOR COMPLAINT CARD
+   ========================================================= */
+[data-theme="dark"] .complaint-card-container {
+  background: var(--bg-card, #151d30) !important;
+  border-color: var(--border-light, #25334d) !important;
+  box-shadow: none !important;
+}
+
+[data-theme="dark"] .complaint-card-container:hover {
+  border-color: rgba(99, 102, 241, 0.45) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .complaint-ticket-id {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .complaint-room-chip {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .complaint-category-chip {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] .complaint-card-desc {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: var(--border-light, #25334d) !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .complaint-remarks-box.is-resolved {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #6ee7b7 !important;
+}
+
+[data-theme="dark"] .complaint-remarks-box.is-inprogress {
+  background: rgba(37, 99, 235, 0.12) !important;
+  border-color: rgba(37, 99, 235, 0.3) !important;
+  color: #93c5fd !important;
+}
+
+[data-theme="dark"] .complaint-card-footer {
+  border-top-color: var(--border-light, #25334d) !important;
+}
+
+[data-theme="dark"] .complaint-staff-badge {
+  background: rgba(124, 58, 237, 0.2) !important;
+  color: #c084fc !important;
+  border-color: rgba(124, 58, 237, 0.35) !important;
+}
+
+[data-theme="dark"] .complaint-timeline-toggle {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: var(--border-light, #25334d) !important;
+  color: #818cf8 !important;
+}
+
+[data-theme="dark"] .complaint-timeline-wrapper {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: var(--border-light, #25334d) !important;
+}
+
+[data-theme="dark"] .complaint-timeline-status {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .complaint-timeline-note {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .complaint-timeline-line {
+  background: var(--border-light, #25334d) !important;
+}
+
+[data-theme="dark"] .complaint-status-badge.status-pending {
+  background: rgba(245, 158, 11, 0.12) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+[data-theme="dark"] .complaint-status-badge.status-inprogress {
+  background: rgba(59, 130, 246, 0.12) !important;
+  color: #60a5fa !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+[data-theme="dark"] .complaint-status-badge.status-resolved {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+[data-theme="dark"] .complaint-status-badge.status-rejected {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
 }
