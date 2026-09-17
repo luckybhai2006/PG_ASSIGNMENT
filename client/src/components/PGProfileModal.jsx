@@ -92,13 +92,7 @@ export default function PGProfileModal({ isOpen, onClose }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-content" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '20px 24px',
-          borderBottom: '1px solid var(--border-light)',
-        }}>
+        <div className="tenant-modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
               width: '36px',
@@ -126,7 +120,7 @@ export default function PGProfileModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ padding: '24px' }}>
+        <form onSubmit={handleSubmit} className="tenant-modal-body">
           {error && (
             <div style={{
               padding: '12px',
@@ -239,7 +233,7 @@ export default function PGProfileModal({ isOpen, onClose }) {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div className="grid-2-col" style={{ gap: '12px' }}>
             <div className="form-group">
               <label>Curfew / Gate Closing Time</label>
               <input

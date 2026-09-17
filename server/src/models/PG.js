@@ -53,6 +53,16 @@ const roomSchema = new mongoose.Schema({
     min: 1,
     max: 10,
   },
+  status: {
+    type: String,
+    enum: ['available', 'maintenance'],
+    default: 'available',
+  },
+  maintenanceReason: {
+    type: String,
+    trim: true,
+    default: '',
+  },
 });
 
 const pgSchema = new mongoose.Schema(

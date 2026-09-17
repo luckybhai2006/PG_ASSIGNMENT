@@ -8,6 +8,7 @@ export default function TenantPendingBanner() {
   const [message, setMessage] = useState('');
 
   const isRejected = user?.inviteStatus === 'rejected';
+  const isVacated = user?.inviteStatus === 'vacated';
 
   const handleCheckStatus = async () => {
     setChecking(true);
@@ -62,7 +63,22 @@ export default function TenantPendingBanner() {
 
         {/* Status Badge */}
         <div style={{ marginBottom: '14px' }}>
-          {isRejected ? (
+          {isVacated ? (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              padding: '4px 12px',
+              borderRadius: '20px',
+              background: '#f1f5f9',
+              color: '#475569',
+              border: '1px solid #cbd5e1',
+            }}>
+              🚪 Residency Concluded / Checked Out
+            </span>
+          ) : isRejected ? (
             <span style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -101,7 +117,11 @@ export default function TenantPendingBanner() {
           color: 'var(--text-main, #0f172a)',
           letterSpacing: '-0.02em',
         }}>
-          {isRejected ? 'Enrollment Not Approved' : `Welcome, ${user?.name}!`}
+          {isVacated
+            ? `Stay Concluded, ${user?.name || 'Resident'}`
+            : isRejected
+            ? 'Enrollment Not Approved'
+            : `Welcome, ${user?.name}!`}
         </h2>
 
         <p style={{
@@ -111,7 +131,11 @@ export default function TenantPendingBanner() {
           marginTop: '10px',
           marginBottom: '20px',
         }}>
-          {isRejected ? (
+          {isVacated ? (
+            <>
+              Your stay at <strong>{pg?.name || 'the PG'}</strong> has been officially concluded. For data privacy and building security, internal resident details and live complaints are no longer accessible. Thank you for staying with us!
+            </>
+          ) : isRejected ? (
             <>
               Your enrollment request for <strong>{pg?.name || 'this PG'}</strong> was not approved by the property owner. If you believe this is a mistake, please reach out to the PG warden or owner directly.
             </>
@@ -144,12 +168,34 @@ export default function TenantPendingBanner() {
           </div>
           <div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #64748b)', textTransform: 'uppercase', fontWeight: 700 }}>
-              Allotted Room
+              {isVacated ? 'Last Occupied Room' : 'Allotted Room'}
             </div>
-            <div style={{ fontSize: '0.86rem', fontWeight: 700, color: user?.roomNumber && user.roomNumber !== 'Unassigned' ? 'var(--primary, #4f46e5)' : '#d97706', marginTop: '2px' }}>
-              {user?.roomNumber && user.roomNumber !== 'Unassigned' ? `Room ${user.roomNumber}` : '⏳ Awaiting Owner Allocation'}
+            <div style={{
+              fontSize: '0.86rem',
+              fontWeight: 700,
+              color: isVacated
+                ? '#475569'
+                : user?.roomNumber && user.roomNumber !== 'Unassigned'
+                ? 'var(--primary, #4f46e5)'
+                : '#d97706',
+              marginTop: '2px'
+            }}>
+              {isVacated
+                ? (user?.lastRoomNumber ? `Room ${user.lastRoomNumber}` : 'N/A')
+                : (user?.roomNumber && user.roomNumber !== 'Unassigned' ? `Room ${user.roomNumber}` : '⏳ Awaiting Owner Allocation')}
             </div>
           </div>
+
+          {isVacated && user?.vacatedReason && (
+            <div style={{ gridColumn: '1 / -1', borderTop: '1px dashed var(--border-light, #e2e8f0)', paddingTop: '8px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted, #64748b)', textTransform: 'uppercase', fontWeight: 700 }}>
+                Checkout Note
+              </div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-main, #0f172a)', marginTop: '2px', fontStyle: 'italic' }}>
+                "{user.vacatedReason}"
+              </div>
+            </div>
+          )}
         </div>
 
         {message && (
@@ -165,7 +211,7 @@ export default function TenantPendingBanner() {
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-          {!isRejected && (
+          {!isRejected && !isVacated && (
             <button
               type="button"
               onClick={handleCheckStatus}

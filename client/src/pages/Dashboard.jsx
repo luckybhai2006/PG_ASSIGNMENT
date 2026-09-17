@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { getSocket } from '../services/socket';
 import { api } from '../services/api';
 import Navbar from '../components/Navbar';
 import StatCards from '../components/StatCards';
@@ -35,9 +37,11 @@ const STATUS_TABS = [
   { id: 'Resolved', label: 'Resolved', icon: CheckCircle2 },
 ];
 const PRIORITIES = ['All', 'Low', 'Medium', 'High', 'Urgent'];
+const STATUSES = ['All', 'Pending', 'In Progress', 'Resolved', 'Rejected'];
 
 export default function Dashboard() {
   const { user, pg, needsInviteAcceptance, needsTenantApproval } = useAuth();
+  const { showToast } = useToast();
 
   const [stats, setStats] = useState(null);
   const [complaints, setComplaints] = useState([]);
@@ -56,13 +60,13 @@ export default function Dashboard() {
   const [selectedComplaintForStatus, setSelectedComplaintForStatus] = useState(null);
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
   const [isTenantModalOpen, setIsTenantModalOpen] = useState(false);
-  const [tenantModalTab, setTenantModalTab] = useState('active');
+  const [tenantModalInitialTab, setTenantModalInitialTab] = useState('active');
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
 
   const handleOpenTenants = (tab = 'active') => {
-    setTenantModalTab(tab);
+    setTenantModalInitialTab(tab);
     setIsTenantModalOpen(true);
   };
 
@@ -92,6 +96,53 @@ export default function Dashboard() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Real-time Socket.io listener for new complaints, status updates, and room maintenance
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleNewComplaint = (data) => {
+      fetchData();
+      showToast({
+        title: '🔔 New Complaint Registered',
+        message: data.message || `A new issue was reported.`,
+        type: 'bell',
+        duration: 5000,
+      });
+    };
+
+    const handleComplaintStatusUpdated = (data) => {
+      fetchData();
+      showToast({
+        title: '📋 Ticket Status Updated',
+        message: data.message || `A complaint status was changed.`,
+        type: 'info',
+        duration: 4000,
+      });
+    };
+
+    const handleRoomStatusUpdated = (data) => {
+      showToast({
+        title: '🏢 Room Status Changed',
+        message: data.message,
+        type: data.targetStatus === 'maintenance' ? 'warning' : 'success',
+        duration: 4500,
+      });
+    };
+
+    socket.on('NEW_COMPLAINT', handleNewComplaint);
+    socket.on('COMPLAINT_STATUS_UPDATED', handleComplaintStatusUpdated);
+    socket.on('MY_COMPLAINT_STATUS_UPDATED', handleComplaintStatusUpdated);
+    socket.on('ROOM_STATUS_UPDATED', handleRoomStatusUpdated);
+
+    return () => {
+      socket.off('NEW_COMPLAINT', handleNewComplaint);
+      socket.off('COMPLAINT_STATUS_UPDATED', handleComplaintStatusUpdated);
+      socket.off('MY_COMPLAINT_STATUS_UPDATED', handleComplaintStatusUpdated);
+      socket.off('ROOM_STATUS_UPDATED', handleRoomStatusUpdated);
+    };
+  }, [fetchData, showToast]);
 
   const handleRefresh = () => {
     if (isRefreshing) return;
@@ -210,16 +261,7 @@ export default function Dashboard() {
         )}
 
         {/* Welcome & Action Banner */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px',
-          marginBottom: '18px',
-          width: '100%',
-          boxSizing: 'border-box',
-        }}>
+        <div className="dashboard-header-row">
           <div style={{ minWidth: 0, flex: '1 1 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
               <span style={{
@@ -277,85 +319,58 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* Action Buttons: Responsive App-Style Grid */}
-          <div style={{ width: '100%', maxWidth: isStaff ? (isOwner ? '420px' : '320px') : 'auto' }}>
-            <style>{`
-              .action-buttons-wrap {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                justify-content: flex-end;
-              }
-              @media (max-width: 640px) {
-                .action-buttons-wrap {
-                  display: grid !important;
-                  grid-template-columns: 1fr 1fr;
-                  gap: 8px !important;
-                  width: 100% !important;
-                  margin-top: 4px;
-                }
-                .primary-action-btn {
-                  grid-column: 1 / -1 !important;
-                  width: 100% !important;
-                }
-                .secondary-action-btn {
-                  width: 100% !important;
-                }
-              }
-            `}</style>
-
-            <div className="action-buttons-wrap">
-              {isOwner && (
-                <button
-                  onClick={() => setIsStaffModalOpen(true)}
-                  className="btn btn-secondary secondary-action-btn"
-                  style={{ height: '38px', padding: '0 12px', fontSize: '0.82rem' }}
-                  title="Manage Staff Editors"
-                >
-                  <Users size={15} color="#8b5cf6" />
-                  <span>Staff</span>
-                </button>
-              )}
-
-              {isStaff && (
-                <button
-                  onClick={() => handleOpenTenants(pendingStudentsCount > 0 ? 'pending' : 'active')}
-                  className="btn btn-secondary secondary-action-btn"
-                  style={{
-                    height: '38px',
-                    padding: '0 12px',
-                    fontSize: '0.82rem',
-                    borderColor: pendingStudentsCount > 0 ? '#f59e0b' : undefined,
-                  }}
-                  title="Manage PG Students / Tenants"
-                >
-                  <Users size={15} color={pendingStudentsCount > 0 ? '#d97706' : '#06b6d4'} />
-                  <span>Students ({studentCount})</span>
-                  {pendingStudentsCount > 0 && (
-                    <span style={{
-                      background: '#ef4444',
-                      color: '#ffffff',
-                      fontSize: '0.65rem',
-                      fontWeight: 800,
-                      padding: '1px 6px',
-                      borderRadius: '10px',
-                      marginLeft: '2px',
-                    }}>
-                      {pendingStudentsCount}
-                    </span>
-                  )}
-                </button>
-              )}
-
+          {/* Action Buttons: Responsive Fluid Toolbar */}
+          <div className="action-buttons-wrap">
+            {isOwner && (
               <button
-                onClick={() => setIsComplaintModalOpen(true)}
-                className="btn btn-primary primary-action-btn"
-                style={{ height: '38px', padding: '0 16px', fontSize: '0.85rem' }}
+                onClick={() => setIsStaffModalOpen(true)}
+                className="btn btn-secondary secondary-action-btn"
+                style={{ height: '38px', padding: '0 14px', fontSize: '0.82rem' }}
+                title="Manage Staff Editors"
               >
-                <Plus size={16} />
-                <span>{isStaff ? 'File Ticket for Tenant' : 'Raise Complaint'}</span>
+                <Users size={15} color="#8b5cf6" />
+                <span>Staff</span>
               </button>
-            </div>
+            )}
+
+            {isStaff && (
+              <button
+                onClick={() => handleOpenTenants(pendingStudentsCount > 0 ? 'pending' : 'active')}
+                className="btn btn-secondary secondary-action-btn"
+                style={{
+                  height: '38px',
+                  padding: '0 14px',
+                  fontSize: '0.82rem',
+                  borderColor: pendingStudentsCount > 0 ? '#f59e0b' : undefined,
+                }}
+                title="Manage PG Students / Tenants"
+              >
+                <Users size={15} color={pendingStudentsCount > 0 ? '#d97706' : '#06b6d4'} />
+                <span>Students ({studentCount})</span>
+                {pendingStudentsCount > 0 && (
+                  <span style={{
+                    background: '#ef4444',
+                    color: '#ffffff',
+                    fontSize: '0.65rem',
+                    fontWeight: 800,
+                    padding: '1px 6px',
+                    borderRadius: '10px',
+                    marginLeft: '2px',
+                  }}>
+                    {pendingStudentsCount}
+                  </span>
+                )}
+              </button>
+            )}
+
+            <button
+              onClick={() => setIsComplaintModalOpen(true)}
+              className="btn btn-primary primary-action-btn"
+              style={{ height: '38px', padding: '0 18px', fontSize: '0.85rem' }}
+            >
+              <Plus size={16} />
+              <span>{isStaff ? 'File Ticket for Tenant' : 'Raise Complaint'}</span>
+            </button>
           </div>
         </div>
 
@@ -363,7 +378,9 @@ export default function Dashboard() {
         <StatCards
           stats={stats}
           activeStatus={selectedStatus}
+          activePriority={selectedPriority}
           onFilterStatus={(status) => setSelectedStatus(status)}
+          onFilterPriority={(priority) => setSelectedPriority(priority)}
           isStaff={isStaff}
           onOpenTenants={() => handleOpenTenants('active')}
         />
@@ -497,12 +514,12 @@ export default function Dashboard() {
             </div>
 
             {/* Dropdown Filters */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: 'auto' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #64748b)' }}>Category:</span>
+            <div className="filter-controls-wrap">
+              <div className="filter-control-item">
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #64748b)', whiteSpace: 'nowrap' }}>Category:</span>
                 <select
                   className="form-select"
-                  style={{ height: '36px', padding: '0 8px', fontSize: '0.78rem', width: 'auto' }}
+                  style={{ height: '36px', padding: '0 8px', fontSize: '0.78rem' }}
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
@@ -512,11 +529,11 @@ export default function Dashboard() {
                 </select>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #64748b)' }}>Priority:</span>
+              <div className="filter-control-item">
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #64748b)', whiteSpace: 'nowrap' }}>Priority:</span>
                 <select
                   className="form-select"
-                  style={{ height: '36px', padding: '0 8px', fontSize: '0.78rem', width: 'auto' }}
+                  style={{ height: '36px', padding: '0 8px', fontSize: '0.78rem' }}
                   value={selectedPriority}
                   onChange={(e) => setSelectedPriority(e.target.value)}
                 >
@@ -608,6 +625,9 @@ export default function Dashboard() {
                 key={complaint._id}
                 complaint={complaint}
                 userRole={user?.role}
+                canManageStatus={
+                  isOwner || (isEditor && user?.permissions?.manageComplaints !== false)
+                }
                 onUpdateStatus={handleOpenStatusModal}
               />
             ))}
@@ -634,6 +654,7 @@ export default function Dashboard() {
         <StaffModal
           isOpen={isStaffModalOpen}
           onClose={() => setIsStaffModalOpen(false)}
+          activePgId={pg?._id}
         />
       )}
 
@@ -642,7 +663,7 @@ export default function Dashboard() {
           isOpen={isTenantModalOpen}
           onClose={() => setIsTenantModalOpen(false)}
           onTenantAdded={fetchData}
-          initialTab={tenantModalTab}
+          initialTab={tenantModalInitialTab}
         />
       )}
 

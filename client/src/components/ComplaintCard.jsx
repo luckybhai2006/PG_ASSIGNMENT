@@ -18,7 +18,7 @@ import {
   MessageSquareQuote,
 } from 'lucide-react';
 
-export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
+export default function ComplaintCard({ complaint, onUpdateStatus, userRole, canManageStatus: canManageStatusProp }) {
   const [showTimeline, setShowTimeline] = useState(false);
 
   const getCategoryConfig = (category) => {
@@ -109,7 +109,9 @@ export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
   const CatIcon = catConfig.icon;
   const StatusIcon = statusConfig.icon;
 
-  const canManageStatus = userRole === 'owner' || userRole === 'editor';
+  const canManageStatus = canManageStatusProp !== undefined 
+    ? canManageStatusProp 
+    : (userRole === 'owner' || userRole === 'editor');
   const ticketId = complaint._id ? `#CMP-${complaint._id.slice(-5).toUpperCase()}` : '#CMP-TKT';
 
   return (
@@ -172,7 +174,7 @@ export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
               color: 'var(--text-main, #0f172a)',
             }}>
               <Home size={11} color="var(--primary, #4f46e5)" />
-              Rm {complaint.roomNumber}
+              Rm {(complaint.tenantId?.roomNumber && complaint.tenantId.roomNumber !== 'Unassigned') ? complaint.tenantId.roomNumber : complaint.roomNumber}
             </span>
 
             <span style={{

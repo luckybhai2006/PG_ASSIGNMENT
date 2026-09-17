@@ -325,7 +325,7 @@ button {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 450px;
+  max-width: 360px;
   line-height: 1.2;
 }
 
@@ -335,23 +335,107 @@ button {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 450px;
+  max-width: 360px;
   line-height: 1.2;
+}
+
+/* Responsive Dashboard Actions & Filters */
+.dashboard-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 18px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.action-buttons-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+
+.filter-controls-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-control-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 /* =========================================================
    MEDIA QUERIES - FULLY RESPONSIVE FOR ALL SCREEN SIZES
    ========================================================= */
 
+/* Tablets & Laptop Half-Screen Split View (<= 992px) */
+@media (max-width: 992px) {
+  .navbar-pg-name {
+    max-width: 220px;
+    font-size: 0.92rem;
+  }
+  .navbar-pg-address {
+    max-width: 220px;
+    font-size: 0.7rem;
+  }
+
+  .hide-on-tablet {
+    display: none !important;
+  }
+}
+
+/* Intermediate Tablet / Half-Screen (<= 850px) */
+@media (max-width: 850px) {
+  .dashboard-header-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .action-buttons-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    gap: 8px !important;
+  }
+
+  .action-buttons-wrap > button {
+    flex: 1 1 0 !important;
+    justify-content: center !important;
+  }
+
+  .filter-controls-wrap {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .filter-control-item {
+    flex: 1 1 calc(50% - 6px) !important;
+  }
+
+  .filter-control-item select {
+    width: 100% !important;
+  }
+}
+
+/* Mobile & Small Split Screens (<= 768px) */
 @media (max-width: 768px) {
   .navbar-pg-name {
     max-width: 160px;
-    font-size: 0.92rem;
+    font-size: 0.9rem;
   }
 
   .navbar-pg-address {
     max-width: 160px;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
   }
 
   .stat-cards-grid {
@@ -367,27 +451,61 @@ button {
   .hide-on-mobile {
     display: none !important;
   }
+
+  .modal-content {
+    max-height: 92vh;
+  }
 }
 
-@media (max-width: 480px) {
-  .navbar-pg-name,
-  .navbar-pg-address {
-    max-width: 140px;
+/* Mobile Devices (<= 540px) */
+@media (max-width: 540px) {
+  .navbar-pg-name {
+    max-width: 130px;
+    font-size: 0.86rem;
   }
-  .stat-cards-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+  .navbar-pg-address {
+    max-width: 130px;
+    font-size: 0.66rem;
+  }
+
+  .action-buttons-wrap {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
     gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .primary-action-btn {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+  }
+
+  .secondary-action-btn {
+    width: 100% !important;
   }
 
   .modal-backdrop {
-    padding: 6px;
+    padding: 8px 6px;
     align-items: flex-end;
   }
 
   .modal-content {
-    max-height: 92vh;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    max-height: 94vh;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    width: 100% !important;
+  }
+}
+
+/* Extra Small Phones (<= 380px) */
+@media (max-width: 380px) {
+  .navbar-pg-name {
+    max-width: 95px;
+    font-size: 0.82rem;
+  }
+  .navbar-pg-address {
+    max-width: 95px;
+    font-size: 0.64rem;
   }
 }
 

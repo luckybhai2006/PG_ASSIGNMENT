@@ -183,8 +183,8 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
             }}
           />
 
-          <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ minWidth: 0, flexShrink: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', minWidth: 0 }}>
               <div
                 className="navbar-pg-name"
                 title={pg?.name || 'PG Management'}
@@ -192,11 +192,12 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
                 {pg?.name || 'PG Management'}
               </div>
 
-              {/* PG Type Badge */}
+              {/* PG Type Badge (hidden on mobile to preserve space) */}
               {pg?.pgType && (() => {
                 const badge = getPgTypeBadge(pg.pgType);
                 return (
                   <span
+                    className="hide-on-mobile"
                     style={{
                       fontSize: '0.68rem',
                       fontWeight: 700,
@@ -206,6 +207,7 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
                       background: badge.bg,
                       color: badge.color,
                       border: badge.border,
+                      flexShrink: 0,
                     }}
                   >
                     {badge.label}
@@ -215,7 +217,7 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
 
               {/* Branch Switcher for Owner */}
               {isOwner && (
-                <div style={{ position: 'relative' }} ref={branchDropdownRef}>
+                <div style={{ position: 'relative', flexShrink: 0 }} ref={branchDropdownRef}>
                   <button
                     type="button"
                     onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
@@ -223,7 +225,7 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
-                      padding: '2px 8px',
+                      padding: '2px 7px',
                       borderRadius: '8px',
                       border: '1px solid var(--border-light, #e2e8f0)',
                       background: 'var(--bg-hover, #f8fafc)',
@@ -232,11 +234,13 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
                       fontWeight: 700,
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap',
                     }}
                     title="Switch branch or add new PG branch"
                   >
                     <Building2 size={12} color="var(--primary, #4f46e5)" />
-                    <span>Branches ({myPGs?.length || 1})</span>
+                    <span className="hide-on-mobile">Branches </span>
+                    <span>({myPGs?.length || 1})</span>
                     <ChevronDown size={11} />
                   </button>
 
@@ -444,10 +448,10 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
             )}
           </button>
 
-          {/* Desktop Shortcuts (Hidden on Mobile) */}
+          {/* Desktop Shortcuts (Hidden on Tablet & Laptop Split) */}
           <button
             onClick={onOpenRules}
-            className="btn btn-secondary hide-on-mobile"
+            className="btn btn-secondary hide-on-tablet"
             style={{ padding: '6px 10px', fontSize: '0.78rem', height: '34px' }}
           >
             <FileText size={14} color="#64748b" />
@@ -457,7 +461,7 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
           {user?.role === 'owner' && (
             <button
               onClick={onOpenProfile}
-              className="btn btn-secondary hide-on-mobile"
+              className="btn btn-secondary hide-on-tablet"
               style={{ padding: '6px 10px', fontSize: '0.78rem', height: '34px' }}
             >
               <Settings size={14} color="#64748b" />
@@ -497,11 +501,11 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
               </div>
 
               {/* Desktop Name & Role Badge */}
-              <span className="hide-on-mobile" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>
+              <span className="hide-on-tablet" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>
                 {user?.name?.split(' ')[0]}
               </span>
 
-              <span className={`badge ${roleInfo.badgeClass} hide-on-mobile`} style={{ fontSize: '0.62rem', padding: '1px 6px' }}>
+              <span className={`badge ${roleInfo.badgeClass} hide-on-tablet`} style={{ fontSize: '0.62rem', padding: '1px 6px' }}>
                 {roleInfo.text}
               </span>
 

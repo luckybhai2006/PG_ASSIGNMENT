@@ -1,5 +1,6 @@
 const PG = require('../models/PG');
 const User = require('../models/User');
+const Complaint = require('../models/Complaint');
 
 // @desc    Get PG Account Details (rules, notice board, contact info)
 // @route   GET /api/pg
@@ -359,8 +360,9 @@ exports.getRooms = async (req, res) => {
       const rNum = room.roomNumber.toUpperCase();
       const residents = tenantsByRoom[rNum] || [];
       const occupied = residents.length;
-      const capacity = room.capacity || 2;
-      const available = Math.max(0, capacity - occupied);
+      const capacity = room.capacity || 1;
+      const isUnderMaintenance = (room.status || '').toLowerCase() === 'maintenance';
+      const available = isUnderMaintenance ? 0 : Math.max(0, capacity - occupied);
       const isFull = occupied >= capacity;
 
       return {
@@ -373,6 +375,9 @@ exports.getRooms = async (req, res) => {
         occupied,
         available,
         isFull,
+        isUnderMaintenance,
+        status: room.status || 'available',
+        maintenanceReason: room.maintenanceReason || '',
         residents,
       };
     });
@@ -385,7 +390,8 @@ exports.getRooms = async (req, res) => {
     const totalRooms = allRooms.length;
     const totalBeds = allRooms.reduce((sum, r) => sum + r.capacity, 0);
     const occupiedBeds = allRooms.reduce((sum, r) => sum + r.occupied, 0);
-    const availableBeds = Math.max(0, totalBeds - occupiedBeds);
+    const maintenanceRooms = allRooms.filter((r) => r.isUnderMaintenance).length;
+    const availableBeds = allRooms.reduce((sum, r) => sum + r.available, 0);
 
     return res.json({
       success: true,
@@ -394,6 +400,7 @@ exports.getRooms = async (req, res) => {
         totalBeds,
         occupiedBeds,
         availableBeds,
+        maintenanceRooms,
       },
       rooms: allRooms,
     });
@@ -639,8 +646,12 @@ exports.updateRoom = async (req, res) => {
       const oldRoomNum = room.roomNumber;
       room.roomNumber = cleanRoomNum;
 
-      // Automatically update all existing students residing in this room!
+      // Automatically update all existing students and complaints residing in this room!
       await User.updateMany(
+        { pgId, roomNumber: oldRoomNum },
+        { $set: { roomNumber: cleanRoomNum } }
+      );
+      await Complaint.updateMany(
         { pgId, roomNumber: oldRoomNum },
         { $set: { roomNumber: cleanRoomNum } }
       );
@@ -807,9 +818,13 @@ exports.renameBlock = async (req, res) => {
 
     await pg.save();
 
-    // Automatically update student room records for any renamed rooms
+    // Automatically update student room records and complaints for any renamed rooms
     for (const [oldRoomNum, newRoomNum] of Object.entries(roomUpdatesMap)) {
       await User.updateMany(
+        { pgId, roomNumber: oldRoomNum },
+        { $set: { roomNumber: newRoomNum } }
+      );
+      await Complaint.updateMany(
         { pgId, roomNumber: oldRoomNum },
         { $set: { roomNumber: newRoomNum } }
       );
@@ -825,6 +840,72 @@ exports.renameBlock = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || 'Server error renaming block code',
+    });
+  }
+};
+
+// @desc    Toggle room maintenance status (available <-> maintenance)
+// @route   PUT /api/pg/rooms/:roomId/maintenance
+// @access  Private (Owner, Accepted Editor)
+exports.toggleRoomMaintenance = async (req, res) => {
+  try {
+    const pgId = req.user.pgId;
+    const { roomId } = req.params;
+    const { status, maintenanceReason = '' } = req.body;
+
+    const pg = await PG.findById(pgId);
+    if (!pg) {
+      return res.status(404).json({ success: false, message: 'PG not found' });
+    }
+
+    const room = (pg.rooms || []).find(
+      (r) => r._id.toString() === roomId || r.roomNumber.toUpperCase() === roomId.toUpperCase()
+    );
+
+    if (!room) {
+      return res.status(404).json({ success: false, message: 'Room not found in your PG' });
+    }
+
+    const targetStatus = status
+      ? status.toLowerCase()
+      : room.status === 'maintenance'
+      ? 'available'
+      : 'maintenance';
+
+    room.status = targetStatus;
+    if (targetStatus === 'maintenance') {
+      room.maintenanceReason = (maintenanceReason || 'Cleaning & Maintenance').trim();
+    } else {
+      room.maintenanceReason = '';
+    }
+
+    await pg.save();
+
+    // Real-time broadcast to all members of this PG branch
+    const emitToPG = req.app.get('emitToPG');
+    if (emitToPG) {
+      emitToPG(pgId, 'ROOM_STATUS_UPDATED', {
+        room,
+        targetStatus,
+        message: targetStatus === 'maintenance'
+          ? `Room ${room.roomNumber} is now Under Maintenance (${room.maintenanceReason})`
+          : `Room ${room.roomNumber} is now Clean & Ready`,
+      });
+    }
+
+    return res.json({
+      success: true,
+      message:
+        targetStatus === 'maintenance'
+          ? `Room ${room.roomNumber} is now marked Under Maintenance/Cleaning.`
+          : `Room ${room.roomNumber} is now Cleaned & Available for allocation!`,
+      room,
+    });
+  } catch (error) {
+    console.error('Toggle Maintenance Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Server error toggling room maintenance',
     });
   }
 };

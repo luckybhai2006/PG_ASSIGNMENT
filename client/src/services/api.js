@@ -1,5 +1,6 @@
 const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const API_URL = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl.replace(/\/$/, '')}/api`;
+export const SOCKET_URL = API_URL.replace(/\/api$/, '');
 
 export const getToken = () => localStorage.getItem('token');
 export const setToken = (token) => localStorage.setItem('token', token);
@@ -55,10 +56,13 @@ export const api = {
   updateRoom: (roomId, body) => request(`/pg/rooms/${roomId}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteRoom: (roomId) => request(`/pg/rooms/${roomId}`, { method: 'DELETE' }),
   renameBlock: (body) => request('/pg/rooms/rename-block', { method: 'POST', body: JSON.stringify(body) }),
+  toggleRoomMaintenance: (roomId, body) => request(`/pg/rooms/${roomId}/maintenance`, { method: 'PUT', body: JSON.stringify(body) }),
 
   // Staff (Owner & Editor)
   inviteEditor: (body) => request('/staff/invite', { method: 'POST', body: JSON.stringify(body) }),
-  getStaff: () => request('/staff'),
+  getStaff: (pgId = '') => request(`/staff${pgId ? `?pgId=${encodeURIComponent(pgId)}` : ''}`),
+  updateStaffPermissions: (id, body) => request(`/staff/${id}/permissions`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteStaff: (id) => request(`/staff/${id}`, { method: 'DELETE' }),
   acceptInvite: () => request('/staff/accept-invite', { method: 'PUT' }),
 
   // Tenants
@@ -67,6 +71,7 @@ export const api = {
   approveTenant: (id, body = {}) => request(`/tenants/${id}/approve`, { method: 'PUT', body: JSON.stringify(body) }),
   rejectTenant: (id) => request(`/tenants/${id}/reject`, { method: 'PUT' }),
   changeTenantRoom: (id, roomNumber) => request(`/tenants/${id}/room`, { method: 'PUT', body: JSON.stringify({ roomNumber }) }),
+  vacateTenant: (id, body = {}) => request(`/tenants/${id}/vacate`, { method: 'PUT', body: JSON.stringify(body) }),
   transferTenantBranch: (id, targetPgId) => request(`/tenants/${id}/transfer`, { method: 'PUT', body: JSON.stringify({ targetPgId }) }),
 
   // Complaints

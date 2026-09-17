@@ -1,9 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { api, getToken, setToken, removeToken } from '../services/api';
+import { initSocket, disconnectSocket, getSocket } from '../services/socket';
+import { useToast } from './ToastContext';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  const { showToast } = useToast();
   const [user, setUser] = useState(null);
   const [pg, setPg] = useState(null);
   const [myPGs, setMyPGs] = useState([]);
@@ -11,6 +14,54 @@ export const AuthProvider = ({ children }) => {
   const [needsInviteAcceptance, setNeedsInviteAcceptance] = useState(false);
   const [needsTenantApproval, setNeedsTenantApproval] = useState(false);
   const inFlightRef = useRef(false);
+
+  // Setup live socket connection and event listeners
+  useEffect(() => {
+    const token = getToken();
+    const currentUserId = user?._id || user?.id;
+    if (token && currentUserId) {
+      const socket = initSocket();
+      if (socket) {
+        let lastToastTime = 0;
+        const handlePermissionsUpdated = (data) => {
+          if (data?.permissions) {
+            setUser((prev) => (prev ? { ...prev, permissions: data.permissions } : prev));
+            const now = Date.now();
+            if (now - lastToastTime > 1500) {
+              lastToastTime = now;
+              showToast({
+                title: '🛡️ Permissions Updated',
+                message: data.message || 'Your operational permissions were updated live by the PG Owner.',
+                type: 'warning',
+                duration: 5000,
+              });
+            }
+          }
+        };
+
+        const handleBranchTransferred = (data) => {
+          if (data?.pg) {
+            setPg(data.pg);
+            setUser((prev) => (prev ? { ...prev, pgId: data.pg._id } : prev));
+            showToast({
+              title: '🏢 Branch Transferred',
+              message: data.message || `You have been shifted to branch "${data.pg.name}" by the PG Owner.`,
+              type: 'info',
+              duration: 6000,
+            });
+          }
+        };
+
+        socket.on('STAFF_PERMISSIONS_UPDATED', handlePermissionsUpdated);
+        socket.on('STAFF_BRANCH_TRANSFERRED', handleBranchTransferred);
+
+        return () => {
+          socket.off('STAFF_PERMISSIONS_UPDATED', handlePermissionsUpdated);
+          socket.off('STAFF_BRANCH_TRANSFERRED', handleBranchTransferred);
+        };
+      }
+    }
+  }, [user?._id, user?.id, showToast]);
 
   const loadUser = async () => {
     const token = getToken();
@@ -29,6 +80,7 @@ export const AuthProvider = ({ children }) => {
       if (data.myPGs) setMyPGs(data.myPGs);
       setNeedsInviteAcceptance(Boolean(data.needsInviteAcceptance));
       setNeedsTenantApproval(Boolean(data.needsTenantApproval));
+      initSocket();
     } catch (err) {
       // Ignore abort errors from rapid reloads / page unloads
       if (err?.name === 'AbortError' || err?.message?.toLowerCase().includes('abort')) {
@@ -61,6 +113,7 @@ export const AuthProvider = ({ children }) => {
     if (data.myPGs) setMyPGs(data.myPGs);
     setNeedsInviteAcceptance(Boolean(data.needsInviteAcceptance));
     setNeedsTenantApproval(Boolean(data.needsTenantApproval));
+    initSocket();
     return data;
   };
 
@@ -72,6 +125,7 @@ export const AuthProvider = ({ children }) => {
     if (data.myPGs) setMyPGs(data.myPGs);
     setNeedsInviteAcceptance(false);
     setNeedsTenantApproval(false);
+    initSocket();
     return data;
   };
 
@@ -82,10 +136,12 @@ export const AuthProvider = ({ children }) => {
     setPg(data.pg);
     setNeedsInviteAcceptance(false);
     setNeedsTenantApproval(Boolean(data.needsTenantApproval));
+    initSocket();
     return data;
   };
 
   const logout = () => {
+    disconnectSocket();
     removeToken();
     setUser(null);
     setPg(null);

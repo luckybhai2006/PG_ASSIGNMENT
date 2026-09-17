@@ -32,12 +32,24 @@ const userSchema = new mongoose.Schema(
     },
     inviteStatus: {
       type: String,
-      enum: ['pending', 'accepted', 'rejected'],
+      enum: ['pending', 'accepted', 'rejected', 'vacated'],
       default: 'accepted',
     },
     roomNumber: {
       type: String,
       trim: true,
+    },
+    lastRoomNumber: {
+      type: String,
+      trim: true,
+    },
+    vacatedAt: {
+      type: Date,
+    },
+    vacatedReason: {
+      type: String,
+      trim: true,
+      default: '',
     },
     phone: {
       type: String,
@@ -51,6 +63,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['male', 'female', 'other'],
       default: 'male',
+    },
+    permissions: {
+      manageRooms: { type: Boolean, default: true },
+      manageMaintenance: { type: Boolean, default: true },
+      manageTenants: { type: Boolean, default: true },
+      manageComplaints: { type: Boolean, default: true },
+      manageNotices: { type: Boolean, default: true },
     },
   },
   {

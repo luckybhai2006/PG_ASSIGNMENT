@@ -1,12 +1,99 @@
+const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
+const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+
+// Socket.io initialization
+let ioInstance = null;
+
+const io = new Server(server, {
+  cors: {
+    origin: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: true,
+  },
+  pingTimeout: 30000,
+  pingInterval: 25000,
+});
+
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+    if (!token) {
+      return next(new Error('Authentication token required'));
+    }
+
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'pg_complaint_management_secret_key_2026_super_secure'
+    );
+
+    const user = await User.findById(decoded.id).select('_id name role pgId inviteStatus permissions');
+    if (!user) {
+      return next(new Error('User not found'));
+    }
+
+    socket.user = user;
+    next();
+  } catch (err) {
+    next(new Error('Invalid socket authentication token'));
+  }
+});
+
+io.on('connection', (socket) => {
+  const user = socket.user;
+  const userIdStr = user._id.toString();
+
+  socket.join(`user_${userIdStr}`);
+
+  if (user.pgId) {
+    socket.join(`pg_${user.pgId.toString()}`);
+  }
+
+  socket.on('join_pg', (pgId) => {
+    if (pgId) socket.join(`pg_${pgId}`);
+  });
+
+  socket.on('leave_pg', (pgId) => {
+    if (pgId) socket.leave(`pg_${pgId}`);
+  });
+
+  socket.on('disconnect', () => {});
+});
+
+ioInstance = io;
+
+function getIO() {
+  return ioInstance;
+}
+
+function emitToUser(userId, event, data) {
+  if (ioInstance && userId) {
+    const targetRoom = `user_${userId.toString()}`;
+    ioInstance.to(targetRoom).emit(event, data);
+  }
+}
+
+function emitToPG(pgId, event, data) {
+  if (ioInstance && pgId) {
+    ioInstance.to(`pg_${pgId.toString()}`).emit(event, data);
+  }
+}
+
+// Make helpers available globally on app
+app.set('socketIO', ioInstance);
+app.set('emitToUser', emitToUser);
+app.set('emitToPG', emitToPG);
 
 // Middlewares
 app.use(cors({
@@ -84,8 +171,8 @@ const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'production') {
   connectDB()
     .then(() => {
-      app.listen(PORT, () => {
-        console.log(`🚀 Server listening on http://localhost:${PORT}`);
+      server.listen(PORT, () => {
+        console.log(`🚀 Server & Socket.io listening on http://localhost:${PORT}`);
       });
     })
     .catch((err) => {

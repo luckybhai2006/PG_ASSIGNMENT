@@ -10,13 +10,7 @@ export default function RulesModal({ isOpen, onClose }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-content" style={{ maxWidth: '560px' }} onClick={(e) => e.stopPropagation()}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '20px 24px',
-          borderBottom: '1px solid var(--border-light)',
-        }}>
+        <div className="tenant-modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
               width: '36px',
@@ -44,7 +38,7 @@ export default function RulesModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        <div style={{ padding: '24px' }}>
+        <div className="tenant-modal-body">
           {/* Contact & Security Details */}
           <div style={{
             background: 'var(--bg-hover, #f8fafc)',

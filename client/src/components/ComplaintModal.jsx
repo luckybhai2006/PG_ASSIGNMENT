@@ -102,13 +102,7 @@ export default function ComplaintModal({ isOpen, onClose, onComplaintCreated, us
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '20px 24px',
-          borderBottom: '1px solid var(--border-light)',
-        }}>
+        <div className="tenant-modal-header">
           <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
             {isStaff ? 'Register Complaint (On Behalf of Tenant)' : 'Raise a Complaint'}
           </h2>
@@ -117,7 +111,7 @@ export default function ComplaintModal({ isOpen, onClose, onComplaintCreated, us
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ padding: '24px' }}>
+        <form onSubmit={handleSubmit} className="tenant-modal-body">
           {error && (
             <div style={{
               padding: '12px',
@@ -173,7 +167,7 @@ export default function ComplaintModal({ isOpen, onClose, onComplaintCreated, us
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="grid-2-col" style={{ gap: '14px' }}>
             <div className="form-group">
               <label>Category *</label>
               <select

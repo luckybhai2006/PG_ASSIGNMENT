@@ -79,7 +79,7 @@ export default function StatusUpdateModal({ isOpen, onClose, complaint, onUpdate
             border: '1px solid var(--border-light, #e2e8f0)',
           }}>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #64748b)', fontWeight: 600 }}>
-              COMPLAINT #{complaint._id.slice(-6).toUpperCase()} • ROOM {complaint.roomNumber}
+              COMPLAINT #{complaint._id.slice(-6).toUpperCase()} • ROOM {(complaint.tenantId?.roomNumber && complaint.tenantId.roomNumber !== 'Unassigned') ? complaint.tenantId.roomNumber : complaint.roomNumber}
             </div>
             <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main, #0f172a)', marginTop: '4px' }}>
               {complaint.title}

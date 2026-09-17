@@ -78,8 +78,33 @@ const requireAcceptedInvite = (req, res, next) => {
   next();
 };
 
+// Middleware: Verify staff has specific permission enabled by owner
+const checkPermission = (permissionKey) => {
+  return (req, res, next) => {
+    // Owners always have full permission
+    if (req.user && req.user.role === 'owner') {
+      return next();
+    }
+
+    if (req.user && req.user.role === 'editor') {
+      const userPerms = req.user.permissions || {};
+      if (userPerms[permissionKey] === false) {
+        return res.status(403).json({
+          success: false,
+          permissionDenied: true,
+          permission: permissionKey,
+          message: `Access denied. You do not have permission for '${permissionKey}'. Please contact the PG Owner to enable it.`,
+        });
+      }
+    }
+
+    next();
+  };
+};
+
 module.exports = {
   protect,
   authorizeRole,
   requireAcceptedInvite,
+  checkPermission,
 };

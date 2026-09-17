@@ -8,7 +8,7 @@ import {
   Users,
 } from 'lucide-react';
 
-export default function StatCards({ stats, onFilterStatus, activeStatus, isStaff, onOpenTenants }) {
+export default function StatCards({ stats, onFilterStatus, onFilterPriority, activeStatus, activePriority, isStaff, onOpenTenants }) {
   const items = [
     ...(isStaff ? [{
       label: 'Students',
@@ -64,9 +64,12 @@ export default function StatCards({ stats, onFilterStatus, activeStatus, isStaff
       icon: Flame,
       color: '#dc2626',
       bg: '#fef2f2',
-      status: 'Urgent',
+      priority: 'Urgent',
+      status: 'All', // Show urgent tickets across pending & in-progress
     },
   ];
+
+  const isFiveCards = items.length === 5;
 
   return (
     <div style={{ width: '100%', marginBottom: '18px' }}>
@@ -77,11 +80,39 @@ export default function StatCards({ stats, onFilterStatus, activeStatus, isStaff
           gap: 12px;
           width: 100%;
         }
-        @media (max-width: 1100px) {
+
+        /* Desktop (> 1024px) */
+        @media (min-width: 1025px) {
           .stat-grid-container {
-            grid-template-columns: repeat(3, 1fr) !important;
+            grid-template-columns: repeat(${items.length}, 1fr) !important;
           }
         }
+
+        /* Tablet & Laptop Half-Screen Split View (641px - 1024px) */
+        @media (min-width: 641px) and (max-width: 1024px) {
+          ${isFiveCards ? `
+            .stat-grid-container {
+              grid-template-columns: repeat(6, 1fr) !important;
+              gap: 10px !important;
+            }
+            .stat-grid-container > div:nth-child(1),
+            .stat-grid-container > div:nth-child(2) {
+              grid-column: span 3 !important;
+            }
+            .stat-grid-container > div:nth-child(3),
+            .stat-grid-container > div:nth-child(4),
+            .stat-grid-container > div:nth-child(5) {
+              grid-column: span 2 !important;
+            }
+          ` : `
+            .stat-grid-container {
+              grid-template-columns: repeat(3, 1fr) !important;
+              gap: 10px !important;
+            }
+          `}
+        }
+
+        /* Mobile Devices (<= 640px) */
         @media (max-width: 640px) {
           .stat-grid-container {
             grid-template-columns: repeat(2, 1fr) !important;
@@ -96,11 +127,18 @@ export default function StatCards({ stats, onFilterStatus, activeStatus, isStaff
       <div className="stat-grid-container">
         {items.map((item) => {
           const Icon = item.icon;
-          const isActive = activeStatus === item.status;
+          const isActive = item.priority 
+            ? activePriority === item.priority 
+            : (!activePriority || activePriority === 'All') && activeStatus === item.status;
+
           const handleClick = () => {
             if (item.isAction && item.onClick) {
               item.onClick();
+            } else if (item.priority) {
+              if (onFilterPriority) onFilterPriority(item.priority);
+              if (onFilterStatus) onFilterStatus('All');
             } else if (onFilterStatus && item.status) {
+              if (onFilterPriority) onFilterPriority('All');
               onFilterStatus(item.status);
             }
           };

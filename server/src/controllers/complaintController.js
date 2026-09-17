@@ -41,8 +41,11 @@ exports.createComplaint = async (req, res) => {
       actualTenantId = tenant._id;
       actualRoomNumber = roomNumber || tenant.roomNumber || 'N/A';
     } else {
-      // If tenant, enforce room number
-      if (roomNumber) {
+      // If tenant, always use tenant's latest allocated roomNumber
+      const currentUser = await User.findById(req.user._id);
+      if (currentUser && currentUser.roomNumber && currentUser.roomNumber !== 'Unassigned') {
+        actualRoomNumber = currentUser.roomNumber;
+      } else if (roomNumber) {
         actualRoomNumber = roomNumber;
       }
     }
@@ -76,6 +79,15 @@ exports.createComplaint = async (req, res) => {
     const populated = await Complaint.findById(complaint._id)
       .populate('tenantId', 'name email roomNumber phone')
       .populate('registeredBy', 'name role');
+
+    // Real-time emission to PG branch members
+    const emitToPG = req.app.get('emitToPG');
+    if (emitToPG) {
+      emitToPG(pgId, 'NEW_COMPLAINT', {
+        complaint: populated,
+        message: `New ${populated.priority} ticket: ${populated.title} (Room ${populated.roomNumber})`,
+      });
+    }
 
     return res.status(201).json({
       success: true,
@@ -131,10 +143,18 @@ exports.getComplaints = async (req, res) => {
       .populate('registeredBy', 'name role')
       .sort({ createdAt: -1 });
 
+    const sanitizedComplaints = complaints.map((c) => {
+      const doc = c.toObject();
+      if (doc.tenantId && doc.tenantId.roomNumber && doc.tenantId.roomNumber !== 'Unassigned') {
+        doc.roomNumber = doc.tenantId.roomNumber;
+      }
+      return doc;
+    });
+
     return res.json({
       success: true,
-      count: complaints.length,
-      complaints,
+      count: sanitizedComplaints.length,
+      complaints: sanitizedComplaints,
     });
   } catch (error) {
     console.error('Get Complaints Error:', error);
@@ -172,9 +192,14 @@ exports.getComplaintById = async (req, res) => {
       });
     }
 
+    const doc = complaint.toObject();
+    if (doc.tenantId && doc.tenantId.roomNumber && doc.tenantId.roomNumber !== 'Unassigned') {
+      doc.roomNumber = doc.tenantId.roomNumber;
+    }
+
     return res.json({
       success: true,
-      complaint,
+      complaint: doc,
     });
   } catch (error) {
     console.error('Get Complaint By Id Error:', error);
@@ -244,6 +269,22 @@ exports.updateComplaintStatus = async (req, res) => {
       .populate('tenantId', 'name email roomNumber phone')
       .populate('registeredBy', 'name role');
 
+    // Real-time emission
+    const emitToPG = req.app.get('emitToPG');
+    const emitToUser = req.app.get('emitToUser');
+    if (emitToPG) {
+      emitToPG(complaint.pgId, 'COMPLAINT_STATUS_UPDATED', {
+        complaint: populated,
+        message: `Ticket #${complaint._id.toString().slice(-5).toUpperCase()} marked as ${status}`,
+      });
+    }
+    if (emitToUser && complaint.tenantId) {
+      emitToUser(complaint.tenantId, 'MY_COMPLAINT_STATUS_UPDATED', {
+        complaint: populated,
+        message: `Your complaint "${complaint.title}" is now ${status}`,
+      });
+    }
+
     return res.json({
       success: true,
       message: `Complaint status successfully marked as ${status}`,
@@ -276,8 +317,8 @@ exports.getStats = async (req, res) => {
     const resolved = await Complaint.countDocuments({ ...filter, status: 'Resolved' });
     const urgent = await Complaint.countDocuments({
       ...filter,
-      priority: { $in: ['High', 'Urgent'] },
-      status: { $in: ['Pending', 'In Progress'] },
+      priority: 'Urgent',
+      status: { $ne: 'Resolved' },
     });
 
     const totalTenants = await User.countDocuments({ pgId, role: 'tenant', inviteStatus: 'accepted' });

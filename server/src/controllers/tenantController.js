@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const PG = require('../models/PG');
+const Complaint = require('../models/Complaint');
 
 // @desc    Add Tenant to PG
 // @route   POST /api/tenants
@@ -18,11 +19,17 @@ exports.addTenant = async (req, res) => {
 
     const cleanRoom = roomNumber.trim().toUpperCase();
 
-    // Check capacity if room is configured
+    // Check capacity and maintenance status if room is configured
     const pg = await PG.findById(pgId);
     if (pg && pg.rooms && pg.rooms.length > 0) {
       const roomConfig = pg.rooms.find(r => r.roomNumber.toUpperCase() === cleanRoom);
       if (roomConfig) {
+        if (roomConfig.status === 'maintenance') {
+          return res.status(400).json({
+            success: false,
+            message: `Room ${roomConfig.roomNumber} is currently under maintenance (${roomConfig.maintenanceReason || 'Cleaning / Repair in progress'}). Please choose another room.`,
+          });
+        }
         const currentCount = await User.countDocuments({
           pgId,
           role: 'tenant',
@@ -87,7 +94,7 @@ exports.addTenant = async (req, res) => {
   }
 };
 
-// @desc    Get all tenants in this PG (accepted & pending approval requests)
+// @desc    Get all tenants in this PG (accepted, pending approval requests & vacated history)
 // @route   GET /api/tenants
 // @access  Private (Owner, Accepted Editor)
 exports.getTenants = async (req, res) => {
@@ -104,6 +111,7 @@ exports.getTenants = async (req, res) => {
       baseQuery.$or = [
         { name: { $regex: search, $options: 'i' } },
         { roomNumber: { $regex: search, $options: 'i' } },
+        { lastRoomNumber: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
       ];
     }
@@ -118,12 +126,19 @@ exports.getTenants = async (req, res) => {
       .select('-password')
       .sort({ createdAt: -1 });
 
+    // Vacated / Checked out students archive
+    const vacatedTenants = await User.find({ ...baseQuery, inviteStatus: 'vacated' })
+      .select('-password')
+      .sort({ vacatedAt: -1 });
+
     return res.json({
       success: true,
       count: tenants.length,
       tenants,
       pendingTenants,
       pendingCount: pendingTenants.length,
+      vacatedTenants,
+      vacatedCount: vacatedTenants.length,
     });
   } catch (error) {
     console.error('Get Tenants Error:', error);
@@ -166,11 +181,17 @@ exports.approveTenant = async (req, res) => {
       });
     }
 
-    // Check capacity if PG has configured rooms
+    // Check capacity & maintenance if PG has configured rooms
     const pg = await PG.findById(pgId);
     if (pg && pg.rooms && pg.rooms.length > 0) {
       const roomConfig = pg.rooms.find(r => r.roomNumber.toUpperCase() === assignedRoom);
       if (roomConfig) {
+        if (roomConfig.status === 'maintenance') {
+          return res.status(400).json({
+            success: false,
+            message: `Room ${roomConfig.roomNumber} is currently under maintenance / cleaning (${roomConfig.maintenanceReason || 'Work in progress'}). Cannot allocate this room.`,
+          });
+        }
         const currentResidentsCount = await User.countDocuments({
           pgId,
           role: 'tenant',
@@ -191,6 +212,12 @@ exports.approveTenant = async (req, res) => {
     tenant.roomNumber = assignedRoom;
     tenant.inviteStatus = 'accepted';
     await tenant.save();
+
+    // Sync any existing complaints registered by this student to their approved room
+    await Complaint.updateMany(
+      { tenantId: tenant._id },
+      { $set: { roomNumber: assignedRoom } }
+    );
 
     return res.json({
       success: true,
@@ -294,6 +321,12 @@ exports.changeTenantRoom = async (req, res) => {
       );
 
       if (targetRoomConfig) {
+        if (targetRoomConfig.status === 'maintenance') {
+          return res.status(400).json({
+            success: false,
+            message: `Room ${targetRoomConfig.roomNumber} is currently under maintenance / cleaning (${targetRoomConfig.maintenanceReason || 'Work in progress'}). Cannot move student here.`,
+          });
+        }
         const currentCount = await User.countDocuments({
           pgId,
           role: 'tenant',
@@ -314,6 +347,12 @@ exports.changeTenantRoom = async (req, res) => {
     const previousRoom = tenant.roomNumber || 'None';
     tenant.roomNumber = cleanRoom;
     await tenant.save();
+
+    // Sync complaints registered by this student to their new room
+    await Complaint.updateMany(
+      { tenantId: tenant._id },
+      { $set: { roomNumber: cleanRoom } }
+    );
 
     return res.json({
       success: true,
@@ -435,4 +474,73 @@ exports.transferTenantBranch = async (req, res) => {
     });
   }
 };
+
+// @desc    Checkout / Vacate student from PG (resets room, revokes active access, archives record)
+// @route   PUT /api/tenants/:id/vacate
+// @access  Private (Owner, Accepted Editor)
+exports.vacateTenant = async (req, res) => {
+  try {
+    const pgId = req.user.pgId;
+    const { reason, markMaintenance, maintenanceReason } = req.body;
+
+    const tenant = await User.findOne({
+      _id: req.params.id,
+      pgId,
+      role: 'tenant',
+      inviteStatus: 'accepted',
+    });
+
+    if (!tenant) {
+      return res.status(404).json({
+        success: false,
+        message: 'Active student record not found in your PG',
+      });
+    }
+
+    const previousRoom = tenant.roomNumber;
+    tenant.inviteStatus = 'vacated';
+    tenant.lastRoomNumber = previousRoom || 'None';
+    tenant.roomNumber = '';
+    tenant.vacatedAt = new Date();
+    tenant.vacatedReason = reason ? reason.trim() : 'Stay completed / Checked out';
+
+    await tenant.save();
+
+    // If requested, put the student's room into maintenance
+    let roomStatusMsg = '';
+    if (markMaintenance && previousRoom && previousRoom !== 'None') {
+      const pg = await PG.findById(pgId);
+      if (pg && pg.rooms) {
+        const room = pg.rooms.find(r => r.roomNumber.toUpperCase() === previousRoom.toUpperCase());
+        if (room) {
+          room.status = 'maintenance';
+          room.maintenanceReason = maintenanceReason ? maintenanceReason.trim() : 'Cleaning after student checkout';
+          await pg.save();
+          roomStatusMsg = ` and Room ${room.roomNumber} marked under maintenance / cleaning.`;
+        }
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: `Student ${tenant.name} has been checked out successfully${roomStatusMsg}`,
+      tenant: {
+        id: tenant._id,
+        name: tenant.name,
+        email: tenant.email,
+        lastRoomNumber: tenant.lastRoomNumber,
+        vacatedAt: tenant.vacatedAt,
+        vacatedReason: tenant.vacatedReason,
+        inviteStatus: tenant.inviteStatus,
+      },
+    });
+  } catch (error) {
+    console.error('Vacate Tenant Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Server error checking out student',
+    });
+  }
+};
+
 

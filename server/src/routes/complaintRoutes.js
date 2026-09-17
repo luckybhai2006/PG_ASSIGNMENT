@@ -11,6 +11,7 @@ const {
   protect,
   authorizeRole,
   requireAcceptedInvite,
+  checkPermission,
 } = require('../middleware/auth');
 
 router.use(protect);
@@ -26,7 +27,7 @@ router.post('/', createComplaint);
 // Single complaint
 router.get('/:id', getComplaintById);
 
-// Update status & resolution notes (Owner & Accepted Editor only)
-router.patch('/:id/status', authorizeRole('owner', 'editor'), updateComplaintStatus);
+// Update status & resolution notes (Owner & Accepted Editor only, guarded by manageComplaints)
+router.patch('/:id/status', authorizeRole('owner', 'editor'), checkPermission('manageComplaints'), updateComplaintStatus);
 
 module.exports = router;

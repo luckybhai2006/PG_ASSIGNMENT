@@ -13,7 +13,9 @@ export default function NoticeBoardModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const canPostNotice = user?.role === 'owner' || user?.role === 'editor';
+  const isOwner = user?.role === 'owner';
+  const isEditor = user?.role === 'editor';
+  const canPostNotice = isOwner || (isEditor && user?.permissions?.manageNotices !== false);
 
   const handlePostNotice = async (e) => {
     e.preventDefault();
@@ -47,13 +49,7 @@ export default function NoticeBoardModal({ isOpen, onClose }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-content" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '20px 24px',
-          borderBottom: '1px solid var(--border-light)',
-        }}>
+        <div className="tenant-modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
               width: '36px',
@@ -81,7 +77,7 @@ export default function NoticeBoardModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        <div style={{ padding: '24px', maxHeight: '75vh', overflowY: 'auto' }}>
+        <div className="tenant-modal-body" style={{ maxHeight: '75vh', overflowY: 'auto' }}>
           {error && (
             <div style={{
               padding: '12px',
@@ -108,7 +104,7 @@ export default function NoticeBoardModal({ isOpen, onClose }) {
               <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '12px', color: 'var(--text-main, #0f172a)' }}>
                 Post New Announcement
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
+              <div className="grid-2-col" style={{ gap: '12px' }}>
                 <div className="form-group" style={{ marginBottom: '10px' }}>
                   <label>Title</label>
                   <input
