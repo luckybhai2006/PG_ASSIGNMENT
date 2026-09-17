@@ -22,9 +22,18 @@ exports.getPGDetails = async (req, res) => {
       });
     }
 
+    if (!pg.joinCode) {
+      pg.joinCode = 'GH-2024';
+      await pg.save();
+    }
+
+    const tenantCount = await User.countDocuments({ pgId, role: 'tenant' });
+    const pgData = pg.toObject();
+    pgData.tenantCount = tenantCount;
+
     return res.json({
       success: true,
-      pg,
+      pg: pgData,
     });
   } catch (error) {
     console.error('Get PG Details Error:', error);
@@ -40,7 +49,7 @@ exports.getPGDetails = async (req, res) => {
 // @access  Private (Owner ONLY)
 exports.updatePGProfile = async (req, res) => {
   try {
-    const { name, address, contactPhone, rules } = req.body;
+    const { name, address, contactPhone, rules, joinCode } = req.body;
     const pgId = req.user.pgId;
 
     const pg = await PG.findById(pgId);
@@ -63,13 +72,18 @@ exports.updatePGProfile = async (req, res) => {
     if (address) pg.address = address.trim();
     if (contactPhone !== undefined) pg.contactPhone = contactPhone.trim();
     if (rules && Array.isArray(rules)) pg.rules = rules;
+    if (joinCode && joinCode.trim()) pg.joinCode = joinCode.trim().toUpperCase();
 
     await pg.save();
+
+    const tenantCount = await User.countDocuments({ pgId, role: 'tenant' });
+    const pgData = pg.toObject();
+    pgData.tenantCount = tenantCount;
 
     return res.json({
       success: true,
       message: 'PG profile updated successfully',
-      pg,
+      pg: pgData,
     });
   } catch (error) {
     console.error('Update PG Profile Error:', error);

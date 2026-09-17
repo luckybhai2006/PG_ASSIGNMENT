@@ -54,10 +54,26 @@ const pgSchema = new mongoose.Schema(
       },
     ],
     noticeBoard: [noticeSchema],
+    joinCode: {
+      type: String,
+      trim: true,
+      uppercase: true,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+pgSchema.pre('save', function (next) {
+  if (!this.joinCode) {
+    const prefix = (this.name || 'PG')
+      .replace(/[^A-Za-z]/g, '')
+      .slice(0, 2)
+      .toUpperCase() || 'PG';
+    this.joinCode = `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+  }
+  next();
+});
 
 module.exports = mongoose.model('PG', pgSchema);

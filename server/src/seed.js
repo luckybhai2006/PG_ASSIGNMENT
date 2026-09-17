@@ -39,6 +39,7 @@ const seedData = async () => {
       address: 'Plot 42, Sector 2, HSR Layout, Bengaluru, Karnataka 560102',
       ownerId: owner._id,
       contactPhone: '+91 98765 43210',
+      joinCode: 'GH-2024',
       rules: [
         'Main gate closes at 10:30 PM.',
         'Quiet hours between 11:00 PM and 6:00 AM.',

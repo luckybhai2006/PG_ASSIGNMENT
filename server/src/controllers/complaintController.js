@@ -280,6 +280,9 @@ exports.getStats = async (req, res) => {
       status: { $in: ['Pending', 'In Progress'] },
     });
 
+    const totalTenants = await User.countDocuments({ pgId, role: 'tenant', inviteStatus: 'accepted' });
+    const pendingStudents = await User.countDocuments({ pgId, role: 'tenant', inviteStatus: 'pending' });
+
     return res.json({
       success: true,
       stats: {
@@ -288,6 +291,8 @@ exports.getStats = async (req, res) => {
         inProgress,
         resolved,
         urgent,
+        totalTenants,
+        pendingStudents,
       },
     });
   } catch (error) {

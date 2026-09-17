@@ -131,18 +131,27 @@ exports.login = async (req, res) => {
     // Fetch PG info if associated
     let pg = null;
     if (user.pgId) {
-      pg = await PG.findById(user.pgId);
+      const pgDoc = await PG.findById(user.pgId);
+      if (pgDoc) {
+        const tenantCount = await User.countDocuments({ pgId: user.pgId, role: 'tenant' });
+        const pgData = pgDoc.toObject();
+        pgData.tenantCount = tenantCount;
+        pg = pgData;
+      }
     }
 
-    // Notice if editor has not yet accepted invite
+    // Notice if editor has not yet accepted invite, or tenant awaiting approval
     const needsInviteAcceptance =
       user.role === 'editor' && user.inviteStatus === 'pending';
+    const needsTenantApproval =
+      user.role === 'tenant' && user.inviteStatus !== 'accepted';
 
     return res.json({
       success: true,
       message: 'Login successful',
       token,
       needsInviteAcceptance,
+      needsTenantApproval,
       user: {
         id: user._id,
         name: user.name,
@@ -172,7 +181,13 @@ exports.getMe = async (req, res) => {
     const user = await User.findById(req.user._id);
     let pg = null;
     if (user.pgId) {
-      pg = await PG.findById(user.pgId);
+      const pgDoc = await PG.findById(user.pgId);
+      if (pgDoc) {
+        const tenantCount = await User.countDocuments({ pgId: user.pgId, role: 'tenant' });
+        const pgData = pgDoc.toObject();
+        pgData.tenantCount = tenantCount;
+        pg = pgData;
+      }
     }
 
     return res.json({
@@ -190,6 +205,8 @@ exports.getMe = async (req, res) => {
       pg,
       needsInviteAcceptance:
         user.role === 'editor' && user.inviteStatus === 'pending',
+      needsTenantApproval:
+        user.role === 'tenant' && user.inviteStatus !== 'accepted',
     });
   } catch (error) {
     console.error('GetMe Error:', error);
@@ -229,12 +246,19 @@ exports.getPublicPGs = async (req, res) => {
 // @access  Public
 exports.registerTenant = async (req, res) => {
   try {
-    const { name, email, password, roomNumber, phone, pgId } = req.body;
+    const { name, email, password, roomNumber, phone, pgId, joinCode } = req.body;
 
     if (!name || !email || !password || !roomNumber || !pgId) {
       return res.status(400).json({
         success: false,
         message: 'Please provide name, email, password, room number, and select a PG',
+      });
+    }
+
+    if (!joinCode || !joinCode.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'PG Secret Join Code is required to enroll into this PG',
       });
     }
 
@@ -254,6 +278,18 @@ exports.registerTenant = async (req, res) => {
       });
     }
 
+    // Verify secret join code (ignore hyphens, spaces, and case)
+    const normalizeCode = (c) => (c || '').replace(/[\s\-_]/g, '').toUpperCase();
+    const cleanInput = normalizeCode(joinCode);
+    const cleanExpected = normalizeCode(pg.joinCode || 'GH-2024');
+
+    if (cleanInput !== cleanExpected) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid PG Secret Join Code for ${pg.name}. Please contact your PG Owner or Caretaker for the correct enrollment passcode.`,
+      });
+    }
+
     const tenant = new User({
       name: name.trim(),
       email: email.toLowerCase().trim(),
@@ -263,7 +299,7 @@ exports.registerTenant = async (req, res) => {
       phone: phone ? phone.trim() : '',
       pgId: pg._id,
       invitedBy: pg.ownerId,
-      inviteStatus: 'accepted',
+      inviteStatus: 'pending', // Awaiting PG Owner Approval
     });
 
     await tenant.save();
@@ -272,8 +308,9 @@ exports.registerTenant = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Student registered successfully',
+      message: 'Student registered successfully. Awaiting approval from PG Owner.',
       token,
+      needsTenantApproval: true,
       user: {
         id: tenant._id,
         name: tenant.name,

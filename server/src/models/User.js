@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema(
     },
     inviteStatus: {
       type: String,
-      enum: ['pending', 'accepted'],
+      enum: ['pending', 'accepted', 'rejected'],
       default: 'accepted',
     },
     roomNumber: {

@@ -65,6 +65,16 @@ const requireAcceptedInvite = (req, res, next) => {
       message: 'Please accept your staff invite first to access PG details and operations.',
     });
   }
+  if (req.user && req.user.role === 'tenant' && req.user.inviteStatus !== 'accepted') {
+    return res.status(403).json({
+      success: false,
+      needsTenantApproval: true,
+      inviteStatus: req.user.inviteStatus,
+      message: req.user.inviteStatus === 'rejected'
+        ? 'Your student enrollment request was rejected by the PG Owner.'
+        : 'Your student enrollment is pending approval by the PG Owner.',
+    });
+  }
   next();
 };
 
