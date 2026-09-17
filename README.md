@@ -235,3 +235,40 @@ git push -u origin main
 5. Under **Environment Variables**, add:
    - `VITE_API_URL` = `https://<your-render-backend-url>.onrender.com/api`
 6. Click **Deploy**.
+
+
+<!-- PROMPTS I USED IN THIS PROJECTS -->
+I need to build a full-stack PG Complaint Management System as an internship assignment.
+
+Tech stack:
+- React.js frontend
+- Node.js + Express.js backend
+- MongoDB + Mongoose
+- JWT based authentication
+
+The system should support three roles:
+1. Owner
+2. Editor/Staff
+3. Tenant
+
+Requirements:
+- Owner can create a PG account.
+- Owner can manage staff/editors.
+- Owner and Editor can add tenants.
+- Owner and Editor can create complaints on behalf of tenants.
+- Owner and Editor can update complaint resolution status.
+- Tenant can login, view PG details, create complaints and track complaint status.
+- Editors must accept their invitation before accessing PG account data.
+- Owner should have exclusive access to staff management and PG/account profile management.
+
+First, don't write code.
+Analyze these requirements and propose:
+1. System architecture
+2. MongoDB schemas
+3. API structure
+4. Authentication/authorization flow
+5. React component/page structure
+6. Folder structure
+7. Important security considerations
+
+Keep the architecture simple and suitable for an internship-level production-style project.

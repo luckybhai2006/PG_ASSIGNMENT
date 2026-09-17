@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Clock, XCircle, RefreshCw, LogOut, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Clock, XCircle, RefreshCw, LogOut } from 'lucide-react';
 
 export default function TenantPendingBanner() {
   const { user, pg, refreshUser, logout } = useAuth();

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
 
 const STATUS_OPTIONS = ['Pending', 'In Progress', 'Resolved', 'Rejected'];

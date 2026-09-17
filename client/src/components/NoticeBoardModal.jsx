@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Bell, PlusCircle, Trash2, AlertCircle } from 'lucide-react';
+import { X, Bell, PlusCircle, Trash2 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 

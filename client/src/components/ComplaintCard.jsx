@@ -9,11 +9,9 @@ import {
   HelpCircle,
   Clock,
   CheckCircle2,
-  AlertTriangle,
   ChevronDown,
   ChevronUp,
   Home,
-  MessageSquareQuote,
   Shield,
   Calendar,
 } from 'lucide-react';

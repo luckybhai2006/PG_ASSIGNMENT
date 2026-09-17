@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, UserPlus, ShieldAlert, CheckCircle, Clock } from 'lucide-react';
+import { X, UserPlus, CheckCircle, Clock } from 'lucide-react';
 import { api } from '../services/api';
 
 export default function StaffModal({ isOpen, onClose }) {

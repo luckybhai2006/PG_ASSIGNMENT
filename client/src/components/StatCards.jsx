@@ -3,7 +3,6 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  Flame,
   Layers,
   Users,
 } from 'lucide-react';

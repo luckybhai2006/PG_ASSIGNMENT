@@ -17,11 +17,8 @@ import TenantPendingBanner from '../components/TenantPendingBanner';
 import {
   Plus,
   Users,
-  UserPlus,
   Search,
   RefreshCw,
-  Inbox,
-  X,
   Clock,
   CheckCircle2,
   AlertCircle,

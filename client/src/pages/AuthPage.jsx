@@ -17,13 +17,10 @@ import {
   ShieldCheck,
   Wrench,
   Bell,
-  CheckCircle2,
   KeyRound,
   Eye,
   EyeOff,
   Sparkles,
-  Layers,
-  ChevronRight
 } from 'lucide-react';
 
 export default function AuthPage() {
@@ -157,10 +154,13 @@ export default function AuthPage() {
   return (
     <div className="auth-root-wrapper">
       <style>{`
+        /* ROOT WRAPPER: Perfectly Centered Horizontally & Vertically */
         .auth-root-wrapper {
           min-height: 100vh;
+          min-height: 100dvh;
           width: 100%;
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
           padding: 24px 16px;
@@ -171,7 +171,7 @@ export default function AuthPage() {
           overflow-x: hidden;
         }
 
-        /* Subtle ambient background glow */
+        /* Ambient Lighting */
         .auth-root-wrapper::before {
           content: '';
           position: fixed;
@@ -198,6 +198,7 @@ export default function AuthPage() {
           z-index: 0;
         }
 
+        /* CARD CONTAINER: Safe Center with margin: auto */
         .auth-card-container {
           display: grid;
           grid-template-columns: 1fr 1.2fr;
@@ -212,9 +213,10 @@ export default function AuthPage() {
           position: relative;
           z-index: 1;
           box-sizing: border-box;
+          margin: auto;
         }
 
-        /* LEFT BRAND / EDITORIAL PANEL (Desktop) */
+        /* DESKTOP LEFT BRAND PANEL */
         .auth-hero-panel {
           background: linear-gradient(160deg, #1e1b4b 0%, #0f172a 100%);
           color: #ffffff;
@@ -259,9 +261,105 @@ export default function AuthPage() {
           background: var(--bg-card, #ffffff);
           box-sizing: border-box;
           width: 100%;
+          position: relative;
         }
 
-        /* Segmented tab nav */
+        /* Top Corner Floating Theme Toggle */
+        .auth-theme-corner-btn {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          border: 1px solid var(--border-light, #e2e8f0);
+          background: var(--bg-card, #ffffff);
+          color: var(--text-main, #0f172a);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 10;
+          transition: all 0.15s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .auth-theme-corner-btn:hover {
+          background: var(--bg-hover, #f1f5f9);
+          border-color: var(--primary, #4f46e5);
+        }
+
+        /* Mobile Brand Identity */
+        .auth-mobile-brand {
+          display: none;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          margin-bottom: 20px;
+          padding-top: 4px;
+        }
+
+        .auth-mobile-logo-wrap {
+          width: 52px;
+          height: 52px;
+          border-radius: 14px;
+          background: #ffffff;
+          padding: 3px;
+          box-shadow: 0 6px 16px -2px rgba(79, 70, 229, 0.25), 0 2px 4px rgba(0, 0, 0, 0.06);
+          border: 1.5px solid rgba(79, 70, 229, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 10px;
+        }
+
+        .auth-mobile-logo {
+          width: 100%;
+          height: 100%;
+          border-radius: 11px;
+          object-fit: cover;
+        }
+
+        .auth-mobile-brand-name {
+          font-size: 1.18rem;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          color: var(--text-main, #0f172a);
+          line-height: 1.2;
+        }
+
+        .auth-mobile-brand-tag {
+          font-size: 0.74rem;
+          color: var(--text-muted, #64748b);
+          font-weight: 600;
+          margin-top: 2px;
+        }
+
+        /* Heading & Subtitle Block */
+        .auth-header-text {
+          text-align: left;
+          margin-bottom: 20px;
+          padding-right: 44px; /* Space for theme button */
+        }
+
+        .auth-title {
+          font-size: 1.35rem;
+          font-weight: 800;
+          color: var(--text-main, #0f172a);
+          letter-spacing: -0.02em;
+          margin: 0;
+          line-height: 1.25;
+        }
+
+        .auth-subtitle {
+          font-size: 0.82rem;
+          color: var(--text-muted, #64748b);
+          margin-top: 4px;
+          margin-bottom: 0;
+        }
+
+        /* Segmented Nav Tab Switcher */
         .auth-segmented-nav {
           display: flex;
           background: var(--bg-hover, #f1f5f9);
@@ -306,7 +404,7 @@ export default function AuthPage() {
           font-weight: 700;
         }
 
-        /* Input enhancements */
+        /* Input styling */
         .auth-input-wrapper {
           position: relative;
           width: 100%;
@@ -363,14 +461,38 @@ export default function AuthPage() {
           color: var(--text-main, #0f172a);
         }
 
-        /* Responsive Form Grids */
+        /* 2-Col form grids */
         .auth-form-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 12px;
         }
 
-        /* Demo credentials chip buttons */
+        /* Demo credentials chip section */
+        .auth-demo-section {
+          margin-top: 22px;
+          padding-top: 16px;
+          border-top: 1px solid var(--border-light, #e2e8f0);
+        }
+
+        .auth-demo-title {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: var(--text-muted, #64748b);
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .auth-demo-chips-row {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
         .demo-chip-btn {
           border: 1px solid var(--border-light, #e2e8f0);
           background: var(--bg-card, #ffffff);
@@ -394,48 +516,61 @@ export default function AuthPage() {
           transform: translateY(-1px);
         }
 
-        /* MOBILE HEADER: Shown only on smaller screens */
-        .auth-mobile-header {
-          display: none;
-          align-items: center;
-          justify-content: space-between;
-          padding-bottom: 18px;
-          margin-bottom: 20px;
-          border-bottom: 1px solid var(--border-light, #e2e8f0);
-        }
-
         /* RESPONSIVE BREAKPOINTS (Mobile & Tablet) */
         @media (max-width: 960px) {
           .auth-root-wrapper {
-            padding: 16px 12px;
-            align-items: flex-start;
+            padding: 20px 14px;
+            justify-content: center;
+            align-items: center;
           }
 
           .auth-card-container {
             grid-template-columns: 1fr;
-            max-width: 480px;
-            border-radius: 20px;
-            margin: 8px auto;
+            max-width: 440px; /* Snug, clean mobile card width */
+            width: 100%;
+            border-radius: 22px;
+            margin: auto;
             min-height: auto;
-            box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.1), 0 1px 3px rgba(0, 0, 0, 0.04);
           }
 
-          /* Hide bulky hero panel completely on mobile so form is immediately visible! */
           .auth-hero-panel {
             display: none !important;
           }
 
           .auth-form-panel {
-            padding: 24px 20px;
+            padding: 30px 22px 24px;
           }
 
-          .auth-mobile-header {
+          .auth-mobile-brand {
             display: flex;
+          }
+
+          .auth-header-text {
+            text-align: center;
+            padding-right: 0;
+            margin-bottom: 18px;
+          }
+
+          .auth-title {
+            font-size: 1.25rem;
           }
 
           .auth-form-grid {
             grid-template-columns: 1fr;
             gap: 0;
+          }
+
+          .auth-demo-section {
+            text-align: center;
+          }
+
+          .auth-demo-title {
+            justify-content: center;
+          }
+
+          .auth-demo-chips-row {
+            justify-content: center;
           }
 
           /* Prevent iOS input auto-zoom by ensuring minimum 16px font size on small screens */
@@ -457,15 +592,15 @@ export default function AuthPage() {
 
         @media (max-width: 400px) {
           .auth-root-wrapper {
-            padding: 10px 8px;
+            padding: 12px 10px;
           }
 
           .auth-form-panel {
-            padding: 20px 14px;
+            padding: 26px 16px 20px;
           }
 
           .auth-card-container {
-            border-radius: 16px;
+            border-radius: 18px;
           }
 
           .demo-chip-btn {
@@ -640,85 +775,43 @@ export default function AuthPage() {
 
         {/* RIGHT INTERACTIVE FORM PANEL */}
         <div className="auth-form-panel">
+          {/* Universal Corner Theme Toggle (Elegantly placed without misaligning form) */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="auth-theme-corner-btn"
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label="Toggle Theme"
+          >
+            {theme === 'dark' ? <Sun size={16} color="#fbbf24" /> : <Moon size={16} color="#6366f1" />}
+          </button>
+
           <div>
-            {/* MOBILE-ONLY BRAND HEADER: Compact, Clean, Professional */}
-            <div className="auth-mobile-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* MOBILE-ONLY CENTERED BRAND EMBLEM */}
+            <div className="auth-mobile-brand">
+              <div className="auth-mobile-logo-wrap">
                 <img
                   src="/logo.png"
                   alt="PG Portal"
-                  style={{
-                    width: '34px',
-                    height: '34px',
-                    borderRadius: '8px',
-                    objectFit: 'cover',
-                  }}
+                  className="auth-mobile-logo"
                 />
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: '0.96rem', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                    PG Portal
-                  </div>
-                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted, #64748b)' }}>
-                    Operations & Resident Hub
-                  </div>
-                </div>
               </div>
-
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="theme-toggle-btn"
-                style={{ width: '34px', height: '34px', borderRadius: '8px' }}
-                title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                aria-label="Toggle Theme"
-              >
-                {theme === 'dark' ? <Sun size={15} color="#fbbf24" /> : <Moon size={15} color="#6366f1" />}
-              </button>
+              <div className="auth-mobile-brand-name">PG Portal</div>
+              <div className="auth-mobile-brand-tag">Operations & Resident Hub</div>
             </div>
 
-            {/* DESKTOP TITLE ROW */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
-              marginBottom: '18px',
-            }}>
-              <div>
-                <h1 style={{
-                  fontSize: '1.35rem',
-                  fontWeight: 800,
-                  color: 'var(--text-main, #0f172a)',
-                  letterSpacing: '-0.02em',
-                  margin: 0,
-                  lineHeight: 1.25,
-                }}>
-                  {activeTab === 'login' && 'Sign in to your account'}
-                  {activeTab === 'tenant-reg' && 'Student enrollment'}
-                  {activeTab === 'owner-reg' && 'Register new PG facility'}
-                </h1>
-                <p style={{
-                  fontSize: '0.82rem',
-                  color: 'var(--text-muted, #64748b)',
-                  marginTop: '4px',
-                  marginBottom: 0,
-                }}>
-                  {activeTab === 'login' && 'Enter your verified credentials to continue'}
-                  {activeTab === 'tenant-reg' && 'Enter your PG join code and room allocation'}
-                  {activeTab === 'owner-reg' && 'Create an operations workspace for your hostel or PG'}
-                </p>
-              </div>
-
-              {/* Desktop Theme Toggle (hidden on mobile header) */}
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="theme-toggle-btn hide-on-mobile"
-                style={{ width: '36px', height: '36px', borderRadius: '9px', flexShrink: 0 }}
-                title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                aria-label="Toggle Theme"
-              >
-                {theme === 'dark' ? <Sun size={16} color="#fbbf24" /> : <Moon size={16} color="#6366f1" />}
-              </button>
+            {/* TITLE & SUBTITLE BLOCK (Centered on mobile, left on desktop) */}
+            <div className="auth-header-text">
+              <h1 className="auth-title">
+                {activeTab === 'login' && 'Sign in to your account'}
+                {activeTab === 'tenant-reg' && 'Student enrollment'}
+                {activeTab === 'owner-reg' && 'Register new PG facility'}
+              </h1>
+              <p className="auth-subtitle">
+                {activeTab === 'login' && 'Enter your verified credentials to continue'}
+                {activeTab === 'tenant-reg' && 'Enter your PG join code and room allocation'}
+                {activeTab === 'owner-reg' && 'Create an operations workspace for your hostel or PG'}
+              </p>
             </div>
 
             {/* Modern Segmented Navigation Bar */}
@@ -1257,29 +1350,15 @@ export default function AuthPage() {
             )}
           </div>
 
-          {/* Quick Demo Access Bar (Clean, uncluttered, senior-level polish) */}
+          {/* QUICK DEMO CREDENTIALS SECTION (Centered on Mobile) */}
           {activeTab === 'login' && (
-            <div style={{
-              marginTop: '22px',
-              paddingTop: '16px',
-              borderTop: '1px solid var(--border-light, #e2e8f0)',
-            }}>
-              <div style={{
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                color: 'var(--text-muted, #64748b)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                marginBottom: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-              }}>
+            <div className="auth-demo-section">
+              <div className="auth-demo-title">
                 <KeyRound size={12} color="var(--primary, #4f46e5)" />
                 <span>Quick demo credentials:</span>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <div className="auth-demo-chips-row">
                 <button
                   type="button"
                   onClick={() => fillCredentials('owner@greenheights.com', 'password123')}

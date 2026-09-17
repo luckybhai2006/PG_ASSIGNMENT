@@ -69,7 +69,6 @@ app.use((req, res, next) => {
 });
 
 // Global Error Handler
-// Global Error Handler
 app.use((err, req, res, next) => {
   console.error('Unhandled Server Error:', err);
 
