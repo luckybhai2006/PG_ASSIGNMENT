@@ -12,6 +12,7 @@ import NoticeBoardModal from '../components/NoticeBoardModal';
 import PGProfileModal from '../components/PGProfileModal';
 import RulesModal from '../components/RulesModal';
 import AcceptInviteBanner from '../components/AcceptInviteBanner';
+import TenantPendingBanner from '../components/TenantPendingBanner';
 
 import {
   Plus,
@@ -24,6 +25,7 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
+  BellRing,
 } from 'lucide-react';
 
 const CATEGORIES = ['All', 'Plumbing', 'Electricity', 'Wi-Fi', 'Cleaning', 'Food', 'Carpentry', 'Other'];
@@ -36,7 +38,7 @@ const STATUS_TABS = [
 const PRIORITIES = ['All', 'Low', 'Medium', 'High', 'Urgent'];
 
 export default function Dashboard() {
-  const { user, pg, needsInviteAcceptance } = useAuth();
+  const { user, pg, needsInviteAcceptance, needsTenantApproval } = useAuth();
 
   const [stats, setStats] = useState(null);
   const [complaints, setComplaints] = useState([]);
@@ -55,9 +57,15 @@ export default function Dashboard() {
   const [selectedComplaintForStatus, setSelectedComplaintForStatus] = useState(null);
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
   const [isTenantModalOpen, setIsTenantModalOpen] = useState(false);
+  const [tenantModalTab, setTenantModalTab] = useState('active');
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
+
+  const handleOpenTenants = (tab = 'active') => {
+    setTenantModalTab(tab);
+    setIsTenantModalOpen(true);
+  };
 
   const fetchData = useCallback(async () => {
     if (needsInviteAcceptance) return;
@@ -96,6 +104,10 @@ export default function Dashboard() {
     return <AcceptInviteBanner />;
   }
 
+  if (needsTenantApproval) {
+    return <TenantPendingBanner />;
+  }
+
   const handleOpenStatusModal = (complaint) => {
     setSelectedComplaintForStatus(complaint);
     setIsStatusModalOpen(true);
@@ -104,6 +116,8 @@ export default function Dashboard() {
   const isOwner = user?.role === 'owner';
   const isEditor = user?.role === 'editor';
   const isStaff = isOwner || isEditor;
+  const studentCount = stats?.totalTenants !== undefined ? stats.totalTenants : (pg?.tenantCount ?? 0);
+  const pendingStudentsCount = stats?.pendingStudents || 0;
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -127,6 +141,8 @@ export default function Dashboard() {
         onOpenNotices={() => setIsNoticeModalOpen(true)}
         onOpenProfile={() => setIsProfileModalOpen(true)}
         onOpenRules={() => setIsRulesModalOpen(true)}
+        onOpenTenants={() => handleOpenTenants('active')}
+        tenantCount={studentCount}
       />
 
       <main style={{
@@ -137,6 +153,63 @@ export default function Dashboard() {
         boxSizing: 'border-box',
         overflowX: 'hidden',
       }}>
+        {/* Pending Student Approval Alert for Owner & Staff */}
+        {isStaff && pendingStudentsCount > 0 && (
+          <div style={{
+            background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+            border: '1.5px solid #fde68a',
+            borderRadius: '14px',
+            padding: '12px 16px',
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            flexWrap: 'wrap',
+            boxShadow: '0 4px 14px rgba(245, 158, 11, 0.1)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: '#f59e0b',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <BellRing size={16} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#92400e' }}>
+                  {pendingStudentsCount} Student Enrollment Request{pendingStudentsCount > 1 ? 's' : ''} Awaiting Approval
+                </div>
+                <div style={{ fontSize: '0.74rem', color: '#b45309', marginTop: '1px' }}>
+                  New students used your join code to enroll. Verify their room allocations and approve or reject.
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleOpenTenants('pending')}
+              className="btn btn-primary"
+              style={{
+                height: '34px',
+                padding: '0 14px',
+                fontSize: '0.8rem',
+                background: '#d97706',
+                borderColor: '#b45309',
+                color: '#ffffff',
+                fontWeight: 700,
+              }}
+            >
+              Review Requests ({pendingStudentsCount})
+            </button>
+          </div>
+        )}
+
         {/* Welcome & Action Banner */}
         <div style={{
           display: 'flex',
@@ -163,6 +236,29 @@ export default function Dashboard() {
               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted, #64748b)' }}>
                 • {pg?.name || 'Green Heights Premium PG'}
               </span>
+              {isStaff && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenTenants('active')}
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    color: '#0891b2',
+                    background: 'rgba(6, 182, 212, 0.12)',
+                    border: '1px solid rgba(6, 182, 212, 0.25)',
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                  }}
+                  title="Click to view & manage students"
+                >
+                  <Users size={12} color="#0891b2" />
+                  <span>{studentCount} Students Enrolled</span>
+                </button>
+              )}
             </div>
 
             <h1 style={{
@@ -224,13 +320,31 @@ export default function Dashboard() {
 
               {isStaff && (
                 <button
-                  onClick={() => setIsTenantModalOpen(true)}
+                  onClick={() => handleOpenTenants(pendingStudentsCount > 0 ? 'pending' : 'active')}
                   className="btn btn-secondary secondary-action-btn"
-                  style={{ height: '38px', padding: '0 12px', fontSize: '0.82rem' }}
-                  title="Manage PG Tenants"
+                  style={{
+                    height: '38px',
+                    padding: '0 12px',
+                    fontSize: '0.82rem',
+                    borderColor: pendingStudentsCount > 0 ? '#f59e0b' : undefined,
+                  }}
+                  title="Manage PG Students / Tenants"
                 >
-                  <UserPlus size={15} color="#06b6d4" />
-                  <span>Tenants</span>
+                  <Users size={15} color={pendingStudentsCount > 0 ? '#d97706' : '#06b6d4'} />
+                  <span>Students ({studentCount})</span>
+                  {pendingStudentsCount > 0 && (
+                    <span style={{
+                      background: '#ef4444',
+                      color: '#ffffff',
+                      fontSize: '0.65rem',
+                      fontWeight: 800,
+                      padding: '1px 6px',
+                      borderRadius: '10px',
+                      marginLeft: '2px',
+                    }}>
+                      {pendingStudentsCount}
+                    </span>
+                  )}
                 </button>
               )}
 
@@ -251,6 +365,8 @@ export default function Dashboard() {
           stats={stats}
           activeStatus={selectedStatus}
           onFilterStatus={(status) => setSelectedStatus(status)}
+          isStaff={isStaff}
+          onOpenTenants={() => handleOpenTenants('active')}
         />
 
         {/* Filter & Search Box */}
@@ -527,6 +643,7 @@ export default function Dashboard() {
           isOpen={isTenantModalOpen}
           onClose={() => setIsTenantModalOpen(false)}
           onTenantAdded={fetchData}
+          initialTab={tenantModalTab}
         />
       )}
 

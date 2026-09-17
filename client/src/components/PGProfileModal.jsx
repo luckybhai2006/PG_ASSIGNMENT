@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Building, ShieldAlert } from 'lucide-react';
+import { X, Save, Building, ShieldAlert, Users, KeyRound } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -9,6 +9,7 @@ export default function PGProfileModal({ isOpen, onClose }) {
   const [address, setAddress] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [rulesText, setRulesText] = useState('');
+  const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -19,6 +20,7 @@ export default function PGProfileModal({ isOpen, onClose }) {
       setAddress(pg.address || '');
       setContactPhone(pg.contactPhone || '');
       setRulesText(pg.rules ? pg.rules.join('\n') : '');
+      setJoinCode(pg.joinCode || 'GH-2024');
     }
   }, [pg]);
 
@@ -41,6 +43,7 @@ export default function PGProfileModal({ isOpen, onClose }) {
         address,
         contactPhone,
         rules,
+        joinCode: joinCode.trim().toUpperCase(),
       });
 
       updatePGState(res.pg);
@@ -121,6 +124,35 @@ export default function PGProfileModal({ isOpen, onClose }) {
             </div>
           )}
 
+          {/* Active Enrolled Students Overview */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'var(--bg-hover, #f8fafc)',
+            border: '1px solid var(--border-light, #e2e8f0)',
+            borderRadius: '10px',
+            padding: '10px 14px',
+            marginBottom: '16px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Users size={16} color="#0891b2" />
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main, #0f172a)' }}>
+                Active Enrolled Students:
+              </span>
+            </div>
+            <span style={{
+              fontSize: '0.82rem',
+              fontWeight: 800,
+              color: '#0891b2',
+              background: 'rgba(6, 182, 212, 0.12)',
+              padding: '2px 10px',
+              borderRadius: '12px'
+            }}>
+              {pg?.tenantCount ?? 0} Students
+            </span>
+          </div>
+
           <div className="form-group">
             <label>PG Property Name *</label>
             <input
@@ -141,6 +173,45 @@ export default function PGProfileModal({ isOpen, onClose }) {
               onChange={(e) => setAddress(e.target.value)}
               required
             />
+          </div>
+
+          <div className="form-group">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <label style={{ margin: 0 }}>Secret Student Enrollment Code *</label>
+              <button
+                type="button"
+                onClick={() => {
+                  const prefix = (name || 'PG').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || 'PG';
+                  setJoinCode(`${prefix}-${Math.floor(1000 + Math.random() * 9000)}`);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--primary, #4f46e5)',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
+                ↻ Generate New Code
+              </button>
+            </div>
+            <div style={{ position: 'relative' }}>
+              <KeyRound size={15} style={{ position: 'absolute', left: '12px', top: '13px', color: 'var(--text-light, #94a3b8)' }} />
+              <input
+                type="text"
+                className="form-input"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                placeholder="e.g. GH-2024"
+                required
+                style={{ paddingLeft: '38px', fontWeight: 800, letterSpacing: '0.08em' }}
+              />
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted, #64748b)', marginTop: '4px', display: 'block' }}>
+              Share this secret code with your residents. Only students who enter this exact passcode can enroll into your PG.
+            </span>
           </div>
 
           <div className="form-group">

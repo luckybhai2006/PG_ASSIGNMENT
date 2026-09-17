@@ -1,8 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import {
-  Building2,
   LogOut,
   Bell,
   FileText,
@@ -10,13 +9,18 @@ import {
   ChevronDown,
   Sun,
   Moon,
+  Users,
 } from 'lucide-react';
 
-export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
+export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tenantCount, onOpenTenants }) {
   const { user, pg, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  const isOwner = user?.role === 'owner';
+  const isStaff = isOwner || user?.role === 'editor';
+  const displayTenantCount = tenantCount !== undefined ? tenantCount : (pg?.tenantCount ?? 0);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -90,11 +94,38 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
           />
 
           <div style={{ minWidth: 0 }}>
-            <div
-              className="navbar-pg-name"
-              title={pg?.name || 'PG Management'}
-            >
-              {pg?.name || 'PG Management'}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <div
+                className="navbar-pg-name"
+                title={pg?.name || 'PG Management'}
+              >
+                {pg?.name || 'PG Management'}
+              </div>
+              {/* {isStaff && (
+                <button
+                  type="button"
+                  onClick={onOpenTenants}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    background: 'rgba(6, 182, 212, 0.12)',
+                    color: '#0891b2',
+                    border: '1px solid rgba(6, 182, 212, 0.25)',
+                    padding: '2px 8px',
+                    borderRadius: '16px',
+                    cursor: onOpenTenants ? 'pointer' : 'default',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title={`Total ${displayTenantCount} students enrolled in this PG (Click to view)`}
+                >
+                  <Users size={12} color="#0891b2" />
+                  <span>{displayTenantCount} Students</span>
+                </button>
+              )} */}
             </div>
             <div
               className="navbar-pg-address"
@@ -301,6 +332,40 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules }) {
                   >
                     <Settings size={15} color="var(--text-muted, #64748b)" />
                     <span>Edit PG Profile</span>
+                  </button>
+                )}
+
+                {isStaff && onOpenTenants && (
+                  <button
+                    onClick={() => { onOpenTenants(); setDropdownOpen(false); }}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px',
+                      borderRadius: '7px',
+                      fontSize: '0.82rem',
+                      color: 'var(--text-main, #334155)',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover, #f8fafc)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Users size={15} color="#0891b2" />
+                      <span>Students & Rooms</span>
+                    </div>
+                    <span style={{
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      background: 'rgba(6, 182, 212, 0.12)',
+                      color: '#0891b2',
+                      padding: '1px 6px',
+                      borderRadius: '12px'
+                    }}>
+                      {displayTenantCount}
+                    </span>
                   </button>
                 )}
 

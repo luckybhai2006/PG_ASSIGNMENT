@@ -5,11 +5,8 @@ const ThemeContext = createContext(null);
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
     try {
-      const saved = localStorage.getItem('theme');
+      const saved = localStorage.getItem('app_theme');
       if (saved === 'dark' || saved === 'light') return saved;
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
-      }
     } catch {
       // Fallback
     }
@@ -18,13 +15,14 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     try {
+      localStorage.removeItem('theme'); // Clear legacy auto-saved theme
       document.documentElement.setAttribute('data-theme', theme);
       if (theme === 'dark') {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
-      localStorage.setItem('theme', theme);
+      localStorage.setItem('app_theme', theme);
     } catch {
       // Fallback
     }

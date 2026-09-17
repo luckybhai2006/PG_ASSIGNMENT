@@ -9,13 +9,16 @@ import {
   User,
   Phone,
   ArrowRight,
-  Sparkles,
   AlertCircle,
-  KeyRound,
   Home,
   RefreshCw,
   Sun,
   Moon,
+  ShieldCheck,
+  Wrench,
+  Bell,
+  CheckCircle2,
+  KeyRound,
 } from 'lucide-react';
 
 export default function AuthPage() {
@@ -34,6 +37,7 @@ export default function AuthPage() {
   const [tRoom, setTRoom] = useState('');
   const [tPhone, setTPhone] = useState('');
   const [tPgId, setTPgId] = useState('');
+  const [tJoinCode, setTJoinCode] = useState('');
   const [pgList, setPgList] = useState([]);
   const [loadingPGs, setLoadingPGs] = useState(false);
 
@@ -72,13 +76,11 @@ export default function AuthPage() {
     fetchPGList();
   }, []);
 
-  // When switching to student registration, fetch fresh list of PGs
   useEffect(() => {
     if (activeTab === 'tenant-reg') {
       fetchPGList();
     }
   }, [activeTab]);
-
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -87,7 +89,7 @@ export default function AuthPage() {
     try {
       await login(email, password);
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Login failed. Please verify your credentials.');
     } finally {
       setLoading(false);
     }
@@ -105,6 +107,7 @@ export default function AuthPage() {
         roomNumber: tRoom,
         phone: tPhone,
         pgId: tPgId,
+        joinCode: tJoinCode.trim().toUpperCase(),
       });
     } catch (err) {
       setError(err.message || 'Tenant registration failed');
@@ -138,6 +141,7 @@ export default function AuthPage() {
     setEmail(userEmail);
     setPassword(userPass);
     setActiveTab('login');
+    setError('');
   };
 
   return (
@@ -146,546 +150,742 @@ export default function AuthPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '12px',
-      background: theme === 'dark'
-        ? 'radial-gradient(circle at top, #1e1b4b 0%, #0b0f19 80%)'
-        : 'linear-gradient(135deg, #f0fdf4 0%, #eef2ff 50%, #faf5ff 100%)',
+      padding: '20px 16px',
+      background: 'var(--bg-main, #f8fafc)',
+      color: 'var(--text-main, #0f172a)',
+      boxSizing: 'border-box',
       width: '100%',
       maxWidth: '100vw',
-      boxSizing: 'border-box',
       overflowX: 'hidden',
-      transition: 'background 0.3s ease',
     }}>
-      <div style={{
-        maxWidth: activeTab === 'login' ? '420px' : '560px',
-        width: '100%',
-        background: 'var(--bg-card, #ffffff)',
-        borderRadius: '20px',
-        boxShadow: '0 15px 35px -10px rgba(0, 0, 0, 0.2)',
-        border: '1px solid var(--border-light, #e2e8f0)',
-        padding: '24px 18px',
-        boxSizing: 'border-box',
-        overflow: 'hidden',
-        position: 'relative',
-      }}>
-        {/* Top bar with Theme Toggle */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '6px' }}>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="theme-toggle-btn"
-            style={{ width: '32px', height: '32px', borderRadius: '8px' }}
-            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            aria-label="Toggle Theme"
-          >
-            {theme === 'dark' ? (
-              <Sun size={15} color="#fbbf24" />
-            ) : (
-              <Moon size={15} color="#6366f1" />
-            )}
-          </button>
-        </div>
+      <style>{`
+        .auth-container-card {
+          display: grid;
+          grid-template-columns: 1fr 1.15fr;
+          max-width: 1040px;
+          width: 100%;
+          min-height: 620px;
+          background: var(--bg-card, #ffffff);
+          border: 1px solid var(--border-light, #e2e8f0);
+          border-radius: 20px;
+          box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.1), 0 1px 3px rgba(0, 0, 0, 0.04);
+          overflow: hidden;
+          box-sizing: border-box;
+        }
 
-        {/* Brand Header */}
-        <div style={{ textAlign: 'center', marginBottom: '18px' }}>
-          <img
-            src="/logo.png"
-            alt="PG Management System"
-            style={{
-              width: '74px',
-              height: '74px',
-              borderRadius: '50%',
-              objectFit: 'cover',
-              margin: '0 auto 8px',
-              display: 'block',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
-              border: '2px solid var(--border-light, #e2e8f0)',
-              background: '#ffffff',
-            }}
-          />
-          <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main, #0f172a)', letterSpacing: '-0.02em' }}>
-            PG Management System
-          </h1>
-          <p style={{ color: 'var(--text-muted, #64748b)', fontSize: '0.8rem', marginTop: '2px', fontWeight: 600 }}>
-            Stay Organized • Live Better
-          </p>
-        </div>
+        .auth-hero-panel {
+          background: linear-gradient(170deg, #1e1b4b 0%, #0f172a 100%);
+          color: #ffffff;
+          padding: 44px 36px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          position: relative;
+          overflow: hidden;
+        }
 
-        {/* Tab Switcher */}
-        <div style={{
-          display: 'flex',
-          background: 'var(--bg-hover, #f1f5f9)',
-          padding: '3px',
-          borderRadius: '10px',
-          marginBottom: '16px',
-          gap: '3px',
-          width: '100%',
-          boxSizing: 'border-box',
-        }}>
-          <button
-            type="button"
-            onClick={() => { setActiveTab('login'); setError(''); }}
-            style={{
-              flex: 1,
-              padding: '7px 4px',
-              borderRadius: '7px',
-              fontWeight: 700,
-              fontSize: '0.78rem',
-              background: activeTab === 'login' ? 'var(--bg-card, #ffffff)' : 'transparent',
-              color: activeTab === 'login' ? 'var(--primary, #4f46e5)' : 'var(--text-muted, #64748b)',
-              boxShadow: activeTab === 'login' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-              textAlign: 'center',
-            }}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => { setActiveTab('tenant-reg'); setError(''); }}
-            style={{
-              flex: 1,
-              padding: '7px 4px',
-              borderRadius: '7px',
-              fontWeight: 700,
-              fontSize: '0.78rem',
-              background: activeTab === 'tenant-reg' ? 'var(--bg-card, #ffffff)' : 'transparent',
-              color: activeTab === 'tenant-reg' ? 'var(--primary, #4f46e5)' : 'var(--text-muted, #64748b)',
-              boxShadow: activeTab === 'tenant-reg' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-              textAlign: 'center',
-            }}
-          >
-            Student Sign Up
-          </button>
-          <button
-            type="button"
-            onClick={() => { setActiveTab('owner-reg'); setError(''); }}
-            style={{
-              flex: 1,
-              padding: '7px 4px',
-              borderRadius: '7px',
-              fontWeight: 700,
-              fontSize: '0.78rem',
-              background: activeTab === 'owner-reg' ? 'var(--bg-card, #ffffff)' : 'transparent',
-              color: activeTab === 'owner-reg' ? 'var(--primary, #4f46e5)' : 'var(--text-muted, #64748b)',
-              boxShadow: activeTab === 'owner-reg' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-              textAlign: 'center',
-            }}
-          >
-            Owner Register
-          </button>
-        </div>
+        .auth-hero-panel::before {
+          content: '';
+          position: absolute;
+          top: -30%;
+          right: -20%;
+          width: 320px;
+          height: 320px;
+          background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
+          pointer-events: none;
+        }
 
-        {error && (
+        .auth-form-panel {
+          padding: 38px 40px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          box-sizing: border-box;
+          background: var(--bg-card, #ffffff);
+        }
+
+        .auth-segmented-nav {
+          display: flex;
+          background: var(--bg-hover, #f1f5f9);
+          padding: 4px;
+          border-radius: 10px;
+          gap: 4px;
+          margin-bottom: 22px;
+          border: 1px solid var(--border-light, #e2e8f0);
+        }
+
+        .auth-segmented-btn {
+          flex: 1;
+          padding: 8px 10px;
+          border: none;
+          background: transparent;
+          font-size: 0.82rem;
+          font-weight: 600;
+          color: var(--text-muted, #64748b);
+          border-radius: 7px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          text-align: center;
+        }
+
+        .auth-segmented-btn.active {
+          background: var(--bg-card, #ffffff);
+          color: var(--text-main, #0f172a);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+          font-weight: 700;
+        }
+
+        .demo-chip-btn {
+          border: 1px solid var(--border-light, #e2e8f0);
+          background: var(--bg-card, #ffffff);
+          color: var(--text-main, #334155);
+          font-size: 0.74rem;
+          font-weight: 600;
+          padding: 6px 10px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .demo-chip-btn:hover {
+          border-color: #4f46e5;
+          color: #4f46e5;
+          background: var(--primary-light, #eef2ff);
+        }
+
+        @media (max-width: 900px) {
+          .auth-container-card {
+            grid-template-columns: 1fr;
+            max-width: 520px;
+          }
+          .auth-hero-panel {
+            padding: 28px 24px 24px;
+          }
+          .auth-form-panel {
+            padding: 26px 20px;
+          }
+        }
+      `}</style>
+
+      <div className="auth-container-card">
+        {/* Left Editorial Panel (Authentic Product Presence) */}
+        <div className="auth-hero-panel">
+          <div>
+            {/* Top brand mark */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '28px' }}>
+              <img
+                src="/logo.png"
+                alt="PG Portal"
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  objectFit: 'cover',
+                  background: '#ffffff',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                }}
+              />
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                  PG Management
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>
+                  Resident Operations Hub
+                </div>
+              </div>
+            </div>
+
+            {/* Headline */}
+            <h2 style={{
+              fontSize: '1.65rem',
+              fontWeight: 800,
+              lineHeight: 1.25,
+              letterSpacing: '-0.03em',
+              marginBottom: '12px',
+              color: '#f8fafc',
+            }}>
+              Organized hostel living, zero friction.
+            </h2>
+            <p style={{
+              fontSize: '0.88rem',
+              color: '#cbd5e1',
+              lineHeight: 1.55,
+              marginBottom: '28px',
+              fontWeight: 400,
+            }}>
+              Designed for modern PG facilities. File maintenance requests in seconds, track repairs live, and maintain room allocations with full transparency.
+            </p>
+
+            {/* Feature highlights */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '7px',
+                  background: 'rgba(99, 102, 241, 0.18)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#818cf8',
+                  flexShrink: 0,
+                  marginTop: '1px',
+                }}>
+                  <Wrench size={14} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#f1f5f9' }}>
+                    Instant Maintenance Dispatch
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', lineHeight: 1.4 }}>
+                    Automated priority tagging for plumbing, electrical & Wi-Fi issues.
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '7px',
+                  background: 'rgba(6, 182, 212, 0.18)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#22d3ee',
+                  flexShrink: 0,
+                  marginTop: '1px',
+                }}>
+                  <ShieldCheck size={14} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#f1f5f9' }}>
+                    Verified Student Directory
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', lineHeight: 1.4 }}>
+                    Each resident is linked to their exact room number for seamless oversight.
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '7px',
+                  background: 'rgba(16, 185, 129, 0.18)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#34d399',
+                  flexShrink: 0,
+                  marginTop: '1px',
+                }}>
+                  <Bell size={14} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#f1f5f9' }}>
+                    Direct PG Noticeboard
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', lineHeight: 1.4 }}>
+                    Broadcast mess schedules, power updates, and building guidelines instantly.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Discreet bottom quote */}
           <div style={{
-            padding: '10px 12px',
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '8px',
-            color: '#b91c1c',
-            fontSize: '0.82rem',
-            marginBottom: '14px',
+            marginTop: '32px',
+            paddingTop: '20px',
+            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
-            boxSizing: 'border-box',
+            justifyContent: 'space-between',
           }}>
-            <AlertCircle size={15} style={{ flexShrink: 0 }} />
-            <span>{error}</span>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+              Built for Owners, Staff & Residents
+            </span>
+            <span style={{ fontSize: '0.72rem', color: '#6366f1', fontWeight: 700 }}>
+              v1.0 Ready
+            </span>
           </div>
-        )}
+        </div>
 
-        {/* 1. Sign In Form */}
-        {activeTab === 'login' && (
-          <form onSubmit={handleLogin} style={{ width: '100%', boxSizing: 'border-box' }}>
-            <div className="form-group">
-              <label>Email Address</label>
-              <div style={{ position: 'relative', width: '100%' }}>
-                <Mail size={15} style={{ position: 'absolute', left: '12px', top: '13px', color: '#94a3b8' }} />
-                <input
-                  type="email"
-                  className="form-input"
-                  style={{ paddingLeft: '36px', height: '40px' }}
-                  placeholder="Enter email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+        {/* Right Form Panel */}
+        <div className="auth-form-panel">
+          <div>
+            {/* Top row: Title and Theme Toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.28rem', fontWeight: 800, color: 'var(--text-main, #0f172a)', letterSpacing: '-0.02em', margin: 0 }}>
+                  {activeTab === 'login' && 'Sign in to account'}
+                  {activeTab === 'tenant-reg' && 'Student enrollment'}
+                  {activeTab === 'owner-reg' && 'Register new PG'}
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted, #64748b)', marginTop: '3px', margin: 0 }}>
+                  {activeTab === 'login' && 'Welcome back! Enter your login details below.'}
+                  {activeTab === 'tenant-reg' && 'Select your PG and register your room account.'}
+                  {activeTab === 'owner-reg' && 'Set up your property management workspace.'}
+                </p>
               </div>
+
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="theme-toggle-btn"
+                style={{ width: '34px', height: '34px', borderRadius: '8px' }}
+                title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                aria-label="Toggle Theme"
+              >
+                {theme === 'dark' ? <Sun size={15} color="#fbbf24" /> : <Moon size={15} color="#6366f1" />}
+              </button>
             </div>
 
-            <div className="form-group">
-              <label>Password</label>
-              <div style={{ position: 'relative', width: '100%' }}>
-                <Lock size={15} style={{ position: 'absolute', left: '12px', top: '13px', color: '#94a3b8' }} />
-                <input
-                  type="password"
-                  className="form-input"
-                  style={{ paddingLeft: '36px', height: '40px' }}
-                  placeholder="Enter password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
+            {/* Segmented Tab Switcher */}
+            <div className="auth-segmented-nav">
+              <button
+                type="button"
+                onClick={() => { setActiveTab('login'); setError(''); }}
+                className={`auth-segmented-btn ${activeTab === 'login' ? 'active' : ''}`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTab('tenant-reg'); setError(''); }}
+                className={`auth-segmented-btn ${activeTab === 'tenant-reg' ? 'active' : ''}`}
+              >
+                Student Sign Up
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTab('owner-reg'); setError(''); }}
+                className={`auth-segmented-btn ${activeTab === 'owner-reg' ? 'active' : ''}`}
+              >
+                Register PG
+              </button>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary"
-              style={{ width: '100%', padding: '10px', fontSize: '0.92rem', marginTop: '6px', height: '42px' }}
-            >
-              {loading ? 'Authenticating...' : 'Sign In to Portal'}
-              <ArrowRight size={16} />
-            </button>
+            {/* Error Message */}
+            {error && (
+              <div style={{
+                padding: '10px 12px',
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '8px',
+                color: '#b91c1c',
+                fontSize: '0.82rem',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxSizing: 'border-box',
+              }}>
+                <AlertCircle size={15} style={{ flexShrink: 0 }} />
+                <span>{error}</span>
+              </div>
+            )}
 
-            {/* Quick 1-Click Demo Logins */}
+            {/* TAB 1: SIGN IN FORM */}
+            {activeTab === 'login' && (
+              <form onSubmit={handleLogin} style={{ width: '100%', boxSizing: 'border-box' }}>
+                <div className="form-group" style={{ marginBottom: '14px' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600 }}>Email Address</label>
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <Mail size={15} style={{ position: 'absolute', left: '12px', top: '13px', color: 'var(--text-light, #94a3b8)' }} />
+                    <input
+                      type="email"
+                      className="form-input"
+                      style={{ paddingLeft: '38px', height: '42px', fontSize: '0.88rem' }}
+                      placeholder="name@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '18px' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600 }}>Password</label>
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <Lock size={15} style={{ position: 'absolute', left: '12px', top: '13px', color: 'var(--text-light, #94a3b8)' }} />
+                    <input
+                      type="password"
+                      className="form-input"
+                      style={{ paddingLeft: '38px', height: '42px', fontSize: '0.88rem' }}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    height: '42px',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <span>{loading ? 'Verifying credentials...' : 'Sign In'}</span>
+                  <ArrowRight size={15} />
+                </button>
+              </form>
+            )}
+
+            {/* TAB 2: STUDENT DIRECT SIGN UP */}
+            {activeTab === 'tenant-reg' && (
+              <form onSubmit={handleTenantRegister} style={{ width: '100%', boxSizing: 'border-box' }}>
+                <div className="grid-2-col">
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Full Name *</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. Rahul Sharma"
+                      value={tName}
+                      onChange={(e) => setTName(e.target.value)}
+                      required
+                      style={{ height: '40px' }}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Room Number *</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. 204-B"
+                      value={tRoom}
+                      onChange={(e) => setTRoom(e.target.value)}
+                      required
+                      style={{ height: '40px' }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid-2-col">
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Email Address *</label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      placeholder="student@example.com"
+                      value={tEmail}
+                      onChange={(e) => setTEmail(e.target.value)}
+                      required
+                      style={{ height: '40px' }}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Password *</label>
+                    <input
+                      type="password"
+                      className="form-input"
+                      placeholder="Min 6 chars"
+                      value={tPassword}
+                      onChange={(e) => setTPassword(e.target.value)}
+                      required
+                      style={{ height: '40px' }}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <label style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600 }}>Select PG Facility *</label>
+                    <button
+                      type="button"
+                      onClick={fetchPGList}
+                      disabled={loadingPGs}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#4f46e5',
+                        fontSize: '0.72rem',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '0',
+                      }}
+                      title="Refresh list of PGs"
+                    >
+                      <RefreshCw size={11} style={{ animation: loadingPGs ? 'spin 1s linear infinite' : 'none' }} />
+                      <span>{loadingPGs ? 'Refreshing...' : 'Refresh'}</span>
+                    </button>
+                  </div>
+                  <select
+                    className="form-select"
+                    value={tPgId}
+                    onChange={(e) => setTPgId(e.target.value)}
+                    required
+                    disabled={loadingPGs || pgList.length === 0}
+                    style={{ height: '40px', fontSize: '0.84rem' }}
+                  >
+                    {loadingPGs ? (
+                      <option value="">Loading registered PGs...</option>
+                    ) : pgList.length === 0 ? (
+                      <option value="">No registered PGs found (Owner registration required)</option>
+                    ) : (
+                      pgList.map((p) => (
+                        <option key={p._id} value={p._id}>
+                          {p.name} {p.address ? `— ${p.address}` : ''}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                    Secret Join Code for {pgList.find((p) => p._id === tPgId)?.name || 'Selected PG'} *
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <KeyRound size={15} style={{ position: 'absolute', left: '12px', top: '13px', color: 'var(--text-light, #94a3b8)' }} />
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. GH-2024 (Provided by PG Owner)"
+                      value={tJoinCode}
+                      onChange={(e) => setTJoinCode(e.target.value.toUpperCase())}
+                      required
+                      style={{ paddingLeft: '38px', height: '40px', letterSpacing: '0.06em', fontWeight: 700 }}
+                    />
+                  </div>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted, #64748b)', marginTop: '3px', display: 'block' }}>
+                    🔒 Enter the official passcode for this PG. Ask your PG Owner or Caretaker.
+                  </span>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '14px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Contact Phone (Optional)</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="+91 98765 43210"
+                    value={tPhone}
+                    onChange={(e) => setTPhone(e.target.value)}
+                    style={{ height: '40px' }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || pgList.length === 0}
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    height: '42px',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <span>{loading ? 'Creating account...' : 'Create Student Account'}</span>
+                  <ArrowRight size={15} />
+                </button>
+              </form>
+            )}
+
+            {/* TAB 3: OWNER REGISTRATION FORM */}
+            {activeTab === 'owner-reg' && (
+              <form onSubmit={handleOwnerRegister} style={{ width: '100%', boxSizing: 'border-box' }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted, #64748b)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '8px' }}>
+                  Owner Profile
+                </div>
+
+                <div className="grid-2-col">
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Full Name *</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. Vikram Malhotra"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      style={{ height: '40px' }}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Personal Phone</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="+91..."
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      style={{ height: '40px' }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid-2-col">
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Email Address *</label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      placeholder="owner@example.com"
+                      value={regEmail}
+                      onChange={(e) => setRegEmail(e.target.value)}
+                      required
+                      style={{ height: '40px' }}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Password *</label>
+                    <input
+                      type="password"
+                      className="form-input"
+                      placeholder="Min 6 chars"
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      required
+                      style={{ height: '40px' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted, #64748b)', textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: '10px', marginBottom: '8px' }}>
+                  PG Details
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '10px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>PG Property Name *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Green Heights Luxury PG"
+                    value={pgName}
+                    onChange={(e) => setPgName(e.target.value)}
+                    required
+                    style={{ height: '40px' }}
+                  />
+                </div>
+
+                <div className="grid-2-col">
+                  <div className="form-group" style={{ marginBottom: '14px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Physical Address *</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Area, City, Pin"
+                      value={pgAddress}
+                      onChange={(e) => setPgAddress(e.target.value)}
+                      required
+                      style={{ height: '40px' }}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: '14px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Helpdesk / Warden Phone</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="+91..."
+                      value={pgPhone}
+                      onChange={(e) => setPgPhone(e.target.value)}
+                      style={{ height: '40px' }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    height: '42px',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <span>{loading ? 'Creating workspace...' : 'Complete PG Registration'}</span>
+                  <ArrowRight size={15} />
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* Understated Demo Access Strip */}
+          {activeTab === 'login' && (
             <div style={{
-              marginTop: '18px',
-              padding: '12px',
-              background: 'var(--bg-hover, #f8fafc)',
-              borderRadius: '12px',
-              border: '1px dashed var(--border-light, #cbd5e1)',
-              width: '100%',
-              boxSizing: 'border-box',
+              marginTop: '22px',
+              paddingTop: '16px',
+              borderTop: '1px solid var(--border-light, #e2e8f0)',
             }}>
               <div style={{
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                color: 'var(--text-muted, #64748b)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                marginBottom: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '5px',
-                fontSize: '0.72rem',
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                color: 'var(--text-muted, #475569)',
-                letterSpacing: '0.04em',
-                marginBottom: '8px',
               }}>
-                <KeyRound size={12} color="var(--primary, #4f46e5)" />
-                1-Click Demo Logins:
+                <KeyRound size={12} color="#4f46e5" />
+                <span>Quick demo credentials:</span>
               </div>
 
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '6px',
-                width: '100%',
-                boxSizing: 'border-box',
-              }}>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => fillCredentials('owner@greenheights.com', 'password123')}
-                  className="btn btn-secondary"
-                  style={{
-                    fontSize: '0.72rem',
-                    padding: '6px 8px',
-                    minHeight: '34px',
-                    whiteSpace: 'normal',
-                    textAlign: 'center',
-                    lineHeight: 1.2,
-                    justifyContent: 'center',
-                  }}
+                  className="demo-chip-btn"
                 >
-                  👑 Owner
+                  <span>👑 Owner</span>
                 </button>
-
                 <button
                   type="button"
                   onClick={() => fillCredentials('editor@greenheights.com', 'password123')}
-                  className="btn btn-secondary"
-                  style={{
-                    fontSize: '0.72rem',
-                    padding: '6px 8px',
-                    minHeight: '34px',
-                    whiteSpace: 'normal',
-                    textAlign: 'center',
-                    lineHeight: 1.2,
-                    justifyContent: 'center',
-                  }}
+                  className="demo-chip-btn"
                 >
-                  🛠️ Staff (Active)
+                  <span>🛠️ Staff Editor</span>
                 </button>
-
-                <button
-                  type="button"
-                  onClick={() => fillCredentials('neweditor@greenheights.com', 'password123')}
-                  className="btn btn-secondary"
-                  style={{
-                    fontSize: '0.72rem',
-                    padding: '6px 8px',
-                    minHeight: '34px',
-                    whiteSpace: 'normal',
-                    textAlign: 'center',
-                    lineHeight: 1.2,
-                    justifyContent: 'center',
-                  }}
-                  title="Test Editor Invite Acceptance"
-                >
-                  ⏳ Staff (Invite)
-                </button>
-
                 <button
                   type="button"
                   onClick={() => fillCredentials('rahul@greenheights.com', 'password123')}
-                  className="btn btn-secondary"
-                  style={{
-                    fontSize: '0.72rem',
-                    padding: '6px 8px',
-                    minHeight: '34px',
-                    whiteSpace: 'normal',
-                    textAlign: 'center',
-                    lineHeight: 1.2,
-                    justifyContent: 'center',
-                  }}
+                  className="demo-chip-btn"
                 >
-                  🏠 Tenant (Rahul)
+                  <span>🏠 Resident (Rahul)</span>
                 </button>
               </div>
             </div>
-          </form>
-        )}
-
-        {/* 2. Tenant Direct Registration Form */}
-        {activeTab === 'tenant-reg' && (
-          <form onSubmit={handleTenantRegister} style={{ width: '100%', boxSizing: 'border-box' }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#06b6d4', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Home size={14} /> Student Room Enrollment
-            </div>
-
-            <div className="grid-2-col">
-              <div className="form-group" style={{ marginBottom: '8px' }}>
-                <label>Full Name *</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Rahul Sharma"
-                  value={tName}
-                  onChange={(e) => setTName(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '8px' }}>
-                <label>Room Number *</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. 302-A"
-                  value={tRoom}
-                  onChange={(e) => setTRoom(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid-2-col">
-              <div className="form-group" style={{ marginBottom: '8px' }}>
-                <label>Email Address *</label>
-                <input
-                  type="email"
-                  className="form-input"
-                  placeholder="student@example.com"
-                  value={tEmail}
-                  onChange={(e) => setTEmail(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '8px' }}>
-                <label>Password *</label>
-                <input
-                  type="password"
-                  className="form-input"
-                  placeholder="Min 6 chars"
-                  value={tPassword}
-                  onChange={(e) => setTPassword(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid-2-col">
-              <div className="form-group" style={{ marginBottom: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <label style={{ margin: 0, fontSize: '0.8rem' }}>Select PG *</label>
-                  <button
-                    type="button"
-                    onClick={fetchPGList}
-                    disabled={loadingPGs}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#4f46e5',
-                      fontSize: '0.72rem',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: '2px 4px',
-                    }}
-                    title="Refresh list of PGs"
-                  >
-                    <RefreshCw size={11} style={{ animation: loadingPGs ? 'spin 1s linear infinite' : 'none' }} />
-                    {loadingPGs ? 'Refreshing...' : 'Refresh'}
-                  </button>
-                </div>
-                <select
-                  className="form-select"
-                  value={tPgId}
-                  onChange={(e) => setTPgId(e.target.value)}
-                  required
-                  disabled={loadingPGs || pgList.length === 0}
-                >
-                  {loadingPGs ? (
-                    <option value="">Loading registered PGs...</option>
-                  ) : pgList.length === 0 ? (
-                    <option value="">No PGs registered yet (Owners must register first)</option>
-                  ) : (
-                    pgList.map((p) => (
-                      <option key={p._id} value={p._id}>
-                        {p.name} {p.address ? `— ${p.address}` : ''} {p.ownerId?.name ? `(${p.ownerId.name})` : ''}
-                      </option>
-                    ))
-                  )}
-                </select>
-                {pgList.length === 0 && !loadingPGs && (
-                  <p style={{ fontSize: '0.72rem', color: '#dc2626', marginTop: '4px', lineHeight: 1.2 }}>
-                    ⚠️ No registered PGs found. An owner must register their PG account first.
-                  </p>
-                )}
-              </div>
-
-
-              <div className="form-group" style={{ marginBottom: '8px' }}>
-                <label>Phone Number</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="+91..."
-                  value={tPhone}
-                  onChange={(e) => setTPhone(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary"
-              style={{ width: '100%', padding: '10px', fontSize: '0.92rem', marginTop: '8px', height: '42px' }}
-            >
-              {loading ? 'Creating Student...' : 'Sign Up as Student'}
-              <Sparkles size={15} />
-            </button>
-          </form>
-        )}
-
-        {/* 3. Owner Register PG Form */}
-        {activeTab === 'owner-reg' && (
-          <form onSubmit={handleOwnerRegister} style={{ width: '100%', boxSizing: 'border-box' }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#4f46e5', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <User size={14} /> 1. Owner Details
-            </div>
-
-            <div className="grid-2-col">
-              <div className="form-group" style={{ marginBottom: '8px' }}>
-                <label>Full Name *</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Vikram Malhotra"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '8px' }}>
-                <label>Phone</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="+91..."
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '8px' }}>
-                <label>Email *</label>
-                <input
-                  type="email"
-                  className="form-input"
-                  placeholder="owner@example.com"
-                  value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '8px' }}>
-                <label>Password *</label>
-                <input
-                  type="password"
-                  className="form-input"
-                  placeholder="Min 6 chars"
-                  value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#06b6d4', marginTop: '10px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Building2 size={14} /> 2. PG Information
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '8px' }}>
-              <label>PG Name *</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. Green Heights PG"
-                value={pgName}
-                onChange={(e) => setPgName(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '8px' }}>
-              <label>PG Address *</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Area, City, Pin code"
-                value={pgAddress}
-                onChange={(e) => setPgAddress(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '12px' }}>
-              <label>Caretaker Phone</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="+91..."
-                value={pgPhone}
-                onChange={(e) => setPgPhone(e.target.value)}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary"
-              style={{ width: '100%', padding: '10px', fontSize: '0.92rem', marginTop: '6px', height: '42px' }}
-            >
-              {loading ? 'Registering...' : 'Register PG Account'}
-              <Sparkles size={15} />
-            </button>
-          </form>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

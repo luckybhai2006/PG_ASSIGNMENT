@@ -53,6 +53,8 @@ export const api = {
   // Tenants
   addTenant: (body) => request('/tenants', { method: 'POST', body: JSON.stringify(body) }),
   getTenants: (search = '') => request(`/tenants${search ? `?search=${encodeURIComponent(search)}` : ''}`),
+  approveTenant: (id) => request(`/tenants/${id}/approve`, { method: 'PUT' }),
+  rejectTenant: (id) => request(`/tenants/${id}/reject`, { method: 'PUT' }),
 
   // Complaints
   getComplaints: (params = {}) => {

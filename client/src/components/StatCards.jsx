@@ -5,10 +5,21 @@ import {
   AlertCircle,
   Flame,
   Layers,
+  Users,
 } from 'lucide-react';
 
-export default function StatCards({ stats, onFilterStatus, activeStatus }) {
+export default function StatCards({ stats, onFilterStatus, activeStatus, isStaff, onOpenTenants }) {
   const items = [
+    ...(isStaff ? [{
+      label: 'Students',
+      sublabel: 'Click to manage',
+      value: stats?.totalTenants ?? 0,
+      icon: Users,
+      color: '#0891b2',
+      bg: 'rgba(6, 182, 212, 0.12)',
+      isAction: true,
+      onClick: onOpenTenants,
+    }] : []),
     {
       label: 'Total Tickets',
       sublabel: 'All logged issues',
@@ -17,7 +28,7 @@ export default function StatCards({ stats, onFilterStatus, activeStatus }) {
       color: '#4f46e5',
       bg: '#eef2ff',
       status: 'All',
-      isHero: true, // Full width on mobile!
+      isHero: !isStaff, // Full width on mobile only for tenant view
     },
     {
       label: 'Pending Action',
@@ -62,13 +73,13 @@ export default function StatCards({ stats, onFilterStatus, activeStatus }) {
       <style>{`
         .stat-grid-container {
           display: grid;
-          grid-template-columns: repeat(5, 1fr);
+          grid-template-columns: repeat(${items.length}, 1fr);
           gap: 12px;
           width: 100%;
         }
-        @media (max-width: 1024px) {
+        @media (max-width: 1100px) {
           .stat-grid-container {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(3, 1fr) !important;
           }
         }
         @media (max-width: 640px) {
@@ -86,10 +97,18 @@ export default function StatCards({ stats, onFilterStatus, activeStatus }) {
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = activeStatus === item.status;
+          const handleClick = () => {
+            if (item.isAction && item.onClick) {
+              item.onClick();
+            } else if (onFilterStatus && item.status) {
+              onFilterStatus(item.status);
+            }
+          };
+
           return (
             <div
               key={item.label}
-              onClick={() => onFilterStatus && onFilterStatus(item.status)}
+              onClick={handleClick}
               className={item.isHero ? 'hero-stat-card' : ''}
               style={{
                 background: 'var(--bg-card, #ffffff)',
@@ -100,7 +119,7 @@ export default function StatCards({ stats, onFilterStatus, activeStatus }) {
                 boxShadow: isActive
                   ? `0 6px 18px -4px ${item.color}25, 0 0 0 2px ${item.color}`
                   : 'var(--shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.05))',
-                cursor: onFilterStatus ? 'pointer' : 'default',
+                cursor: (item.isAction || onFilterStatus) ? 'pointer' : 'default',
                 transform: isActive ? 'translateY(-1px)' : 'none',
                 transition: 'all 0.15s ease',
                 position: 'relative',

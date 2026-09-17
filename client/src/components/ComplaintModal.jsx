@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, PlusCircle, AlertCircle } from 'lucide-react';
+import { X, PlusCircle, AlertCircle, CheckCircle2, Home } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const CATEGORIES = [
   'Plumbing',
@@ -15,6 +16,7 @@ const CATEGORIES = [
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 
 export default function ComplaintModal({ isOpen, onClose, onComplaintCreated, userRole }) {
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Electricity');
@@ -31,18 +33,27 @@ export default function ComplaintModal({ isOpen, onClose, onComplaintCreated, us
   const isStaff = userRole === 'owner' || userRole === 'editor';
 
   useEffect(() => {
-    if (isOpen && isStaff) {
-      api.getTenants()
-        .then((res) => {
-          setTenants(res.tenants || []);
-          if (res.tenants && res.tenants.length > 0) {
-            setSelectedTenantId(res.tenants[0]._id);
-            setRoomNumber(res.tenants[0].roomNumber || '');
-          }
-        })
-        .catch((err) => console.error('Error fetching tenants list:', err));
+    if (isOpen) {
+      setError('');
+      if (!isStaff) {
+        setRoomNumber(user?.roomNumber || '');
+      } else {
+        api.getTenants()
+          .then((res) => {
+            const list = res.tenants || [];
+            setTenants(list);
+            if (list.length > 0) {
+              setSelectedTenantId(list[0]._id);
+              setRoomNumber(list[0].roomNumber || '');
+            } else {
+              setSelectedTenantId('');
+              setRoomNumber('');
+            }
+          })
+          .catch((err) => console.error('Error fetching tenants list:', err));
+      }
     }
-  }, [isOpen, isStaff]);
+  }, [isOpen, isStaff, user]);
 
   const handleTenantSelect = (e) => {
     const tId = e.target.value;
@@ -50,6 +61,8 @@ export default function ComplaintModal({ isOpen, onClose, onComplaintCreated, us
     const tenant = tenants.find((t) => t._id === tId);
     if (tenant) {
       setRoomNumber(tenant.roomNumber || '');
+    } else {
+      setRoomNumber('');
     }
   };
 
@@ -188,18 +201,39 @@ export default function ComplaintModal({ isOpen, onClose, onComplaintCreated, us
             </div>
           </div>
 
-          {!isStaff && (
-            <div className="form-group">
-              <label>Room Number</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. 204-B"
-                value={roomNumber}
-                onChange={(e) => setRoomNumber(e.target.value)}
-              />
+          <div className="form-group">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <label style={{ margin: 0 }}>Room Number *</label>
+              {roomNumber && (
+                <span style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  color: '#059669',
+                  background: '#ecfdf5',
+                  padding: '2px 8px',
+                  borderRadius: '10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}>
+                  <CheckCircle2 size={12} /> Auto-filled
+                </span>
+              )}
             </div>
-          )}
+            <input
+              type="text"
+              className="form-input"
+              placeholder="e.g. 101, 204-B"
+              value={roomNumber}
+              onChange={(e) => setRoomNumber(e.target.value)}
+              required
+            />
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted, #64748b)', marginTop: '4px', display: 'block' }}>
+              {isStaff
+                ? 'Auto-filled based on selected student. You can edit if needed.'
+                : 'Auto-filled from your registered room profile.'}
+            </span>
+          </div>
 
           <div className="form-group">
             <label>Issue Details & Description *</label>

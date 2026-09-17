@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [pg, setPg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [needsInviteAcceptance, setNeedsInviteAcceptance] = useState(false);
+  const [needsTenantApproval, setNeedsTenantApproval] = useState(false);
   const inFlightRef = useRef(false);
 
   const loadUser = async () => {
@@ -25,6 +26,7 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       setPg(data.pg);
       setNeedsInviteAcceptance(Boolean(data.needsInviteAcceptance));
+      setNeedsTenantApproval(Boolean(data.needsTenantApproval));
     } catch (err) {
       // Ignore abort errors from rapid reloads / page unloads
       if (err?.name === 'AbortError' || err?.message?.toLowerCase().includes('abort')) {
@@ -54,6 +56,7 @@ export const AuthProvider = ({ children }) => {
     setUser(data.user);
     setPg(data.pg);
     setNeedsInviteAcceptance(Boolean(data.needsInviteAcceptance));
+    setNeedsTenantApproval(Boolean(data.needsTenantApproval));
     return data;
   };
 
@@ -63,6 +66,7 @@ export const AuthProvider = ({ children }) => {
     setUser(data.user);
     setPg(data.pg);
     setNeedsInviteAcceptance(false);
+    setNeedsTenantApproval(false);
     return data;
   };
 
@@ -72,15 +76,16 @@ export const AuthProvider = ({ children }) => {
     setUser(data.user);
     setPg(data.pg);
     setNeedsInviteAcceptance(false);
+    setNeedsTenantApproval(Boolean(data.needsTenantApproval));
     return data;
   };
-
 
   const logout = () => {
     removeToken();
     setUser(null);
     setPg(null);
     setNeedsInviteAcceptance(false);
+    setNeedsTenantApproval(false);
   };
 
   const acceptInvite = async () => {
@@ -88,6 +93,7 @@ export const AuthProvider = ({ children }) => {
     setUser(data.user);
     setPg(data.pg);
     setNeedsInviteAcceptance(false);
+    setNeedsTenantApproval(false);
     return data;
   };
 
@@ -102,6 +108,7 @@ export const AuthProvider = ({ children }) => {
         pg,
         loading,
         needsInviteAcceptance,
+        needsTenantApproval,
         login,
         registerOwner,
         registerTenant,
@@ -110,7 +117,6 @@ export const AuthProvider = ({ children }) => {
         updatePGState,
         refreshUser: loadUser,
       }}
-
     >
       {children}
     </AuthContext.Provider>
