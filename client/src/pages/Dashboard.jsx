@@ -23,6 +23,8 @@ import {
   CheckCircle2,
   AlertCircle,
   BellRing,
+  Inbox,
+  X,
 } from 'lucide-react';
 
 const CATEGORIES = ['All', 'Plumbing', 'Electricity', 'Wi-Fi', 'Cleaning', 'Food', 'Carpentry', 'Other'];

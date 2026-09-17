@@ -9,11 +9,13 @@ import {
   HelpCircle,
   Clock,
   CheckCircle2,
+  AlertTriangle,
   ChevronDown,
   ChevronUp,
   Home,
   Shield,
   Calendar,
+  MessageSquareQuote,
 } from 'lucide-react';
 
 export default function ComplaintCard({ complaint, onUpdateStatus, userRole }) {
