@@ -53,6 +53,7 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
   const [completionNote, setCompletionNote] = useState('');
 
   const chatEndRef = useRef(null);
+  const isInitialChatLoadedRef = useRef(false);
 
   const canChat = user?.role === 'owner' || user?.permissions?.canChat !== false;
   const canAssign = user?.role === 'owner' || user?.permissions?.canAssignTasks === true;
@@ -82,6 +83,9 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
 
       setMessages(msgRes.messages || []);
       setTasks(taskRes.tasks || []);
+      setTimeout(() => {
+        isInitialChatLoadedRef.current = true;
+      }, 400);
 
       const staffData = staffRes.staff || [];
       setStaffList(staffData);
@@ -99,6 +103,7 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
 
   useEffect(() => {
     if (isOpen) {
+      isInitialChatLoadedRef.current = false;
       loadData();
       setActiveTab(initialTab);
     }
@@ -186,6 +191,11 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
           const res = await api.getTeamMessages(activePgId);
           if (res?.messages && Array.isArray(res.messages)) {
             setMessages((prev) => {
+              if (!isInitialChatLoadedRef.current) {
+                isInitialChatLoadedRef.current = true;
+                return res.messages;
+              }
+
               const prevMap = new Map();
               prev.forEach((m) => {
                 if (m._id) prevMap.set(m._id.toString(), m);

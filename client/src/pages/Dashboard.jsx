@@ -225,6 +225,12 @@ export default function Dashboard() {
     };
   }, [user, pg?._id, user?.pgId, showToast, isDuplicateEvent]);
 
+  // Persistent trackers for live updates polling (never reset on normal component re-renders)
+  const knownMsgIdsRef = useRef(new Set());
+  const knownTasksMapRef = useRef(new Map());
+  const initialSyncDoneRef = useRef(false);
+  const activePgIdTrackerRef = useRef('');
+
   // Smart live polling fallback when Socket.IO is not connected (e.g. on Vercel Serverless)
   useEffect(() => {
     if (authLoading || !user || user.role === 'tenant') return;
@@ -233,9 +239,15 @@ export default function Dashboard() {
 
     const activePgId = pg?._id || user?.pgId?._id || user?.pgId || '';
     const myId = (user._id || user.id)?.toString();
-    const knownMsgIds = new Set();
-    const knownTasksMap = new Map();
-    let initialSyncDone = false;
+
+    // Reset sync baseline only if active PG actually changed
+    if (activePgIdTrackerRef.current !== activePgId) {
+      activePgIdTrackerRef.current = activePgId;
+      knownMsgIdsRef.current.clear();
+      knownTasksMapRef.current.clear();
+      initialSyncDoneRef.current = false;
+    }
+
     let isPolling = false;
 
     const pollLiveUpdates = async () => {
@@ -252,14 +264,14 @@ export default function Dashboard() {
         const msgs = msgRes?.messages || [];
         const tasks = taskRes?.tasks || [];
 
-        if (!initialSyncDone) {
+        if (!initialSyncDoneRef.current) {
           msgs.forEach((m) => {
-            if (m?._id) knownMsgIds.add(m._id.toString());
+            if (m?._id) knownMsgIdsRef.current.add(m._id.toString());
           });
           tasks.forEach((t) => {
-            if (t?._id) knownTasksMap.set(t._id.toString(), t.status);
+            if (t?._id) knownTasksMapRef.current.set(t._id.toString(), t.status);
           });
-          initialSyncDone = true;
+          initialSyncDoneRef.current = true;
           isPolling = false;
           return;
         }
@@ -267,8 +279,8 @@ export default function Dashboard() {
         // 1. Process new incoming messages
         for (const msg of msgs) {
           const msgIdStr = msg?._id?.toString();
-          if (msgIdStr && !knownMsgIds.has(msgIdStr)) {
-            knownMsgIds.add(msgIdStr);
+          if (msgIdStr && !knownMsgIdsRef.current.has(msgIdStr)) {
+            knownMsgIdsRef.current.add(msgIdStr);
             const senderId = (msg.sender?._id || msg.sender)?.toString();
             if (senderId !== myId && !isTeamDrawerOpenRef.current) {
               if (!isDuplicateEvent('msg_' + msgIdStr)) {
@@ -291,7 +303,7 @@ export default function Dashboard() {
           }
         }
 
-        // 2. Process tasks (new task assigned to me or task marked as Done)
+        // 2. Process tasks
         let myAssignedCount = 0;
         for (const t of tasks) {
           const tIdStr = t?._id?.toString();
@@ -302,8 +314,8 @@ export default function Dashboard() {
             myAssignedCount++;
           }
 
-          if (!knownTasksMap.has(tIdStr)) {
-            knownTasksMap.set(tIdStr, t.status);
+          if (!knownTasksMapRef.current.has(tIdStr)) {
+            knownTasksMapRef.current.set(tIdStr, t.status);
             if (assigneeId === myId && !isTeamDrawerOpenRef.current) {
               if (!isDuplicateEvent('task_assign_' + tIdStr)) {
                 playNotificationChime();
@@ -316,9 +328,9 @@ export default function Dashboard() {
               }
             }
           } else {
-            const prevStatus = knownTasksMap.get(tIdStr);
+            const prevStatus = knownTasksMapRef.current.get(tIdStr);
             if (prevStatus !== t.status) {
-              knownTasksMap.set(tIdStr, t.status);
+              knownTasksMapRef.current.set(tIdStr, t.status);
               if (t.status === 'Done') {
                 const completedById = (t.completedBy?._id || t.completedBy)?.toString();
                 if (completedById !== myId && !isTeamDrawerOpenRef.current) {
@@ -346,7 +358,7 @@ export default function Dashboard() {
     };
 
     pollLiveUpdates();
-    const interval = setInterval(pollLiveUpdates, 3200);
+    const interval = setInterval(pollLiveUpdates, 3000);
 
     return () => clearInterval(interval);
   }, [authLoading, user, pg?._id, user?.pgId, showToast, isDuplicateEvent]);
