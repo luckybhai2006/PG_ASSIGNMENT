@@ -145,7 +145,16 @@ export const api = {
 
   // Team Hub (Chat & Task Ecosystem)
   getTeamMessages: (params = {}) => {
-    const qs = typeof params === 'string' ? (params ? `pgId=${params}` : '') : new URLSearchParams(params).toString();
+    let qs = '';
+    if (typeof params === 'string') {
+      qs = params ? `pgId=${encodeURIComponent(params)}` : '';
+    } else if (typeof params === 'object' && params !== null) {
+      const clean = {};
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') clean[k] = v;
+      });
+      qs = new URLSearchParams(clean).toString();
+    }
     return request(`/team-hub/messages${qs ? `?${qs}` : ''}`);
   },
   sendTeamMessage: (body) => request('/team-hub/messages', { method: 'POST', body: JSON.stringify(body) }),

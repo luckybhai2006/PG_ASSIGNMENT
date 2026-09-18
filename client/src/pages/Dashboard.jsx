@@ -48,10 +48,11 @@ let homeDataCache = {
 };
 
 export default function Dashboard() {
-  const { user, pg, needsInviteAcceptance, needsTenantApproval, loading: authLoading } = useAuth();
+  const { user, pg, myPGs, needsInviteAcceptance, needsTenantApproval, loading: authLoading } = useAuth();
   const { showToast } = useToast();
 
-  const activePgId = pg?._id || user?.pgId?._id || user?.pgId || '';
+  const currentPg = pg || (myPGs && myPGs[0]) || null;
+  const activePgId = currentPg?._id || user?.pgId?._id || user?.pgId || '';
   const isMatchingCache = homeDataCache.pgId === activePgId && activePgId !== '' && homeDataCache.stats !== null;
 
   const [stats, setStats] = useState(() => (isMatchingCache ? homeDataCache.stats : null));
@@ -237,7 +238,7 @@ export default function Dashboard() {
     const socket = getSocket();
     if (socket && socket.connected) return;
 
-    const activePgId = pg?._id || user?.pgId?._id || user?.pgId || '';
+    const activePgId = currentPg?._id || user?.pgId?._id || user?.pgId || '';
     const myId = (user._id || user.id)?.toString();
 
     // Reset sync baseline only if active PG actually changed
@@ -283,22 +284,20 @@ export default function Dashboard() {
             knownMsgIdsRef.current.add(msgIdStr);
             const senderId = (msg.sender?._id || msg.sender)?.toString();
             if (senderId !== myId && !isTeamDrawerOpenRef.current) {
-              if (!isDuplicateEvent('msg_' + msgIdStr)) {
-                const senderName = msg.sender?.name || 'Team Member';
-                const senderRole =
-                  msg.sender?.role === 'owner'
-                    ? 'Owner'
-                    : msg.sender?.staffRole === 'manager'
-                      ? 'Manager'
-                      : 'Staff';
-                playNotificationChime();
-                showToast({
-                  title: `💬 Message from ${senderName} (${senderRole})`,
-                  message: msg.text?.length > 70 ? msg.text.slice(0, 70) + '...' : msg.text,
-                  type: 'info',
-                  duration: 4500,
-                });
-              }
+              const senderName = msg.sender?.name || 'Team Member';
+              const senderRole =
+                msg.sender?.role === 'owner'
+                  ? 'Owner'
+                  : msg.sender?.staffRole === 'manager'
+                    ? 'Manager'
+                    : 'Staff';
+              playNotificationChime();
+              showToast({
+                title: `💬 Message from ${senderName} (${senderRole})`,
+                message: msg.text?.length > 70 ? msg.text.slice(0, 70) + '...' : msg.text,
+                type: 'info',
+                duration: 5000,
+              });
             }
           }
         }
@@ -1059,7 +1058,7 @@ export default function Dashboard() {
                 setIsTeamDrawerOpen(false);
                 fetchTasksCount();
               }}
-              pg={pg}
+              pg={currentPg}
             />
           )}
         </React.Suspense>

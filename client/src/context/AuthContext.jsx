@@ -76,7 +76,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const data = await api.getMe();
       setUser(data.user);
-      setPg(data.pg);
+      const activePg = data.pg || (data.myPGs && data.myPGs[0]) || null;
+      setPg(activePg);
       if (data.myPGs) setMyPGs(data.myPGs);
       setNeedsInviteAcceptance(Boolean(data.needsInviteAcceptance));
       setNeedsTenantApproval(Boolean(data.needsTenantApproval));
@@ -115,7 +116,8 @@ export const AuthProvider = ({ children }) => {
     const data = await api.login({ email, password });
     setToken(data.token);
     setUser(data.user);
-    setPg(data.pg);
+    const activePg = data.pg || (data.myPGs && data.myPGs[0]) || null;
+    setPg(activePg);
     if (data.myPGs) setMyPGs(data.myPGs);
     setNeedsInviteAcceptance(Boolean(data.needsInviteAcceptance));
     setNeedsTenantApproval(Boolean(data.needsTenantApproval));
@@ -127,7 +129,8 @@ export const AuthProvider = ({ children }) => {
     const data = await api.registerOwner(formData);
     setToken(data.token);
     setUser(data.user);
-    setPg(data.pg);
+    const activePg = data.pg || (data.myPGs && data.myPGs[0]) || null;
+    setPg(activePg);
     if (data.myPGs) setMyPGs(data.myPGs);
     setNeedsInviteAcceptance(false);
     setNeedsTenantApproval(false);

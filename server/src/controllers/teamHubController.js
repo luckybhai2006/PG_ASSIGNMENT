@@ -43,6 +43,27 @@ exports.getMessages = async (req, res) => {
       return res.status(403).json({ success: false, message: 'You do not have permission to access team chat' });
     }
 
+    const query = { pgId };
+    if (req.query.since) {
+      const sinceDate = new Date(req.query.since);
+      if (!isNaN(sinceDate.getTime())) {
+        query.createdAt = { $gt: sinceDate };
+      }
+    }
+
+    // High-concurrency delta sync: return only newly created messages since timestamp
+    if (req.query.since) {
+      const deltaMessages = await TeamMessage.find(query)
+        .sort({ createdAt: 1 })
+        .limit(50)
+        .populate('sender', 'name role email phone staffRole designation')
+        .populate('attachedTask')
+        .lean();
+
+      return res.json({ success: true, messages: deltaMessages, isDelta: true });
+    }
+
+    // Baseline load: fetch recent 80 messages
     const messages = await TeamMessage.find({ pgId })
       .sort({ createdAt: -1 })
       .limit(80)
@@ -50,7 +71,7 @@ exports.getMessages = async (req, res) => {
       .populate('attachedTask')
       .lean();
 
-    return res.json({ success: true, messages: messages.reverse() });
+    return res.json({ success: true, messages: messages.reverse(), isDelta: false });
   } catch (error) {
     console.error('getMessages error:', error);
     return res.status(500).json({ success: false, message: error.message || 'Server error' });

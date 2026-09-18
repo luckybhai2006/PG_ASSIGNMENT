@@ -20,9 +20,12 @@ import { playNotificationChime } from '../services/sound';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
-export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
-  const { user, pg } = useAuth();
+export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat', pg: propPg }) {
+  const { user, pg: authPg, myPGs } = useAuth();
   const { showToast } = useToast();
+
+  const currentPg = propPg || authPg || (myPGs && myPGs[0]) || null;
+  const activePgId = currentPg?._id || user?.pgId?._id || user?.pgId || '';
 
   const [activeTab, setActiveTab] = useState(initialTab); // 'chat' | 'tasks'
   const [messages, setMessages] = useState([]);
@@ -54,16 +57,15 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
 
   const chatEndRef = useRef(null);
   const isInitialChatLoadedRef = useRef(false);
+  const lastChatTimestampRef = useRef(null);
 
   const canChat = user?.role === 'owner' || user?.permissions?.canChat !== false;
   const canAssign = user?.role === 'owner' || user?.permissions?.canAssignTasks === true;
 
-  // Load initial data
   // Load initial data in parallel (blazing fast single-roundtrip)
   const loadData = async () => {
     try {
       setLoading(true);
-      const activePgId = pg?._id || user?.pgId?._id || user?.pgId || '';
 
       const staffPromise = api
         .getStaff(activePgId)
@@ -81,11 +83,15 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
         staffPromise,
       ]);
 
-      setMessages(msgRes.messages || []);
+      const loadedMsgs = msgRes.messages || [];
+      setMessages(loadedMsgs);
+      if (loadedMsgs.length > 0) {
+        lastChatTimestampRef.current = loadedMsgs[loadedMsgs.length - 1].createdAt;
+      }
       setTasks(taskRes.tasks || []);
       setTimeout(() => {
         isInitialChatLoadedRef.current = true;
-      }, 400);
+      }, 350);
 
       const staffData = staffRes.staff || [];
       setStaffList(staffData);
@@ -104,10 +110,11 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
   useEffect(() => {
     if (isOpen) {
       isInitialChatLoadedRef.current = false;
+      lastChatTimestampRef.current = null;
       loadData();
       setActiveTab(initialTab);
     }
-  }, [isOpen, initialTab, pg?._id, user?.pgId]);
+  }, [isOpen, initialTab, activePgId]);
 
   // Scroll chat to bottom
   useEffect(() => {
@@ -177,8 +184,8 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
     const socket = getSocket();
     if (socket && socket.connected) return;
 
-    const activePgId = pg?._id || user?.pgId?._id || user?.pgId || '';
-    if (!activePgId) return;
+    // Never return early for owner even if activePgId is empty (backend defaults to owner's PG)
+    if (!activePgId && user?.role !== 'owner') return;
 
     let isPolling = false;
     const pollInterval = setInterval(async () => {
@@ -188,50 +195,54 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
 
       try {
         if (activeTab === 'chat') {
-          const res = await api.getTeamMessages(activePgId);
+          const params = { pgId: activePgId };
+          if (lastChatTimestampRef.current && isInitialChatLoadedRef.current) {
+            params.since = lastChatTimestampRef.current;
+          }
+
+          const res = await api.getTeamMessages(params);
           if (res?.messages && Array.isArray(res.messages)) {
-            setMessages((prev) => {
-              if (!isInitialChatLoadedRef.current) {
-                isInitialChatLoadedRef.current = true;
-                return res.messages;
+            if (!isInitialChatLoadedRef.current) {
+              setMessages(res.messages);
+              if (res.messages.length > 0) {
+                lastChatTimestampRef.current = res.messages[res.messages.length - 1].createdAt;
               }
+              isInitialChatLoadedRef.current = true;
+            } else if (res.messages.length > 0) {
+              // High-concurrency delta update: only new incoming messages are returned!
+              lastChatTimestampRef.current = res.messages[res.messages.length - 1].createdAt;
 
-              const prevMap = new Map();
-              prev.forEach((m) => {
-                if (m._id) prevMap.set(m._id.toString(), m);
-              });
+              setMessages((prev) => {
+                const prevMap = new Map(prev.map((m) => [m._id?.toString(), m]));
+                let hasNewFromOther = false;
+                const next = [...prev];
+                const myId = (user?._id || user?.id)?.toString();
 
-              let hasNew = false;
-              let hasNewFromOther = false;
-              const next = [...prev];
-              const myId = (user?._id || user?.id)?.toString();
-
-              for (const m of res.messages) {
-                const idStr = m._id?.toString();
-                if (!prevMap.has(idStr)) {
-                  const senderId = (m.sender?._id || m.sender)?.toString();
-                  if (senderId === myId) {
-                    const tempIdx = next.findIndex(
-                      (item) => item._id && item._id.toString().startsWith('temp_') && item.text === m.text
-                    );
-                    if (tempIdx !== -1) {
-                      next[tempIdx] = m;
-                      hasNew = true;
-                      continue;
+                for (const m of res.messages) {
+                  const idStr = m._id?.toString();
+                  if (!prevMap.has(idStr)) {
+                    const senderId = (m.sender?._id || m.sender)?.toString();
+                    if (senderId === myId) {
+                      const tempIdx = next.findIndex(
+                        (item) => item._id && item._id.toString().startsWith('temp_') && item.text === m.text
+                      );
+                      if (tempIdx !== -1) {
+                        next[tempIdx] = m;
+                        continue;
+                      }
+                    } else {
+                      hasNewFromOther = true;
                     }
-                  } else {
-                    hasNewFromOther = true;
+                    next.push(m);
                   }
-                  next.push(m);
-                  hasNew = true;
                 }
-              }
 
-              if (hasNewFromOther) {
-                playNotificationChime();
-              }
-              return hasNew ? next : prev;
-            });
+                if (hasNewFromOther) {
+                  playNotificationChime();
+                }
+                return next;
+              });
+            }
           }
         } else if (activeTab === 'tasks') {
           const res = await api.getTeamTasks({ pgId: activePgId });
@@ -244,10 +255,10 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
       } finally {
         isPolling = false;
       }
-    }, 2800);
+    }, 2400);
 
     return () => clearInterval(pollInterval);
-  }, [isOpen, activeTab, pg?._id, user?.pgId, user?._id, user?.id]);
+  }, [isOpen, activeTab, activePgId, user?._id, user?.id, user?.role]);
 
   // Handle typing & @mention trigger
   const handleTextChange = (e) => {
@@ -278,7 +289,7 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
     e?.preventDefault();
     if (!text.trim() || !canChat) return;
 
-    const currentPgId = pg?._id || user?.pgId?._id || user?.pgId;
+    const currentPgId = activePgId;
     const sendText = text.trim();
     const sendMentions = selectedMentions;
 
@@ -305,6 +316,9 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
         pgId: currentPgId,
       });
       if (res.message) {
+        if (res.message.createdAt) {
+          lastChatTimestampRef.current = res.message.createdAt;
+        }
         setMessages((prev) => {
           const alreadyAdded = prev.some((m) => m._id === res.message._id);
           if (alreadyAdded) {
@@ -709,7 +723,9 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
                 </div>
               ) : (
                 messages.map((m) => {
-                  const isMe = m.sender?._id === user?._id || m.sender === user?._id;
+                  const myId = (user?._id || user?.id)?.toString();
+                  const msgSenderId = (m.sender?._id || m.sender)?.toString();
+                  const isMe = Boolean(msgSenderId && myId && msgSenderId === myId);
                   const isOwner = m.sender?.role === 'owner';
                   return (
                     <div
