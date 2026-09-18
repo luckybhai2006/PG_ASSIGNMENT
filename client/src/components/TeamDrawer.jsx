@@ -24,8 +24,8 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat', pg: p
   const { user, pg: authPg, myPGs } = useAuth();
   const { showToast } = useToast();
 
-  const currentPg = propPg || authPg || (myPGs && myPGs[0]) || null;
-  const activePgId = currentPg?._id || user?.pgId?._id || user?.pgId || '';
+  const pg = propPg || authPg || (myPGs && myPGs[0]) || null;
+  const activePgId = pg?._id || user?.pgId?._id || user?.pgId || '';
 
   const [activeTab, setActiveTab] = useState(initialTab); // 'chat' | 'tasks'
   const [messages, setMessages] = useState([]);
