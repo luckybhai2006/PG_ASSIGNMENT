@@ -88,4 +88,17 @@ export const api = {
   getComplaintById: (id) => request(`/complaints/${id}`),
   updateComplaintStatus: (id, body) => request(`/complaints/${id}/status`, { method: 'PATCH', body: JSON.stringify(body) }),
   getStats: () => request('/complaints/stats'),
+
+  // Team Hub (Chat & Task Ecosystem)
+  getTeamMessages: (params = {}) => {
+    const qs = typeof params === 'string' ? (params ? `pgId=${params}` : '') : new URLSearchParams(params).toString();
+    return request(`/team-hub/messages${qs ? `?${qs}` : ''}`);
+  },
+  sendTeamMessage: (body) => request('/team-hub/messages', { method: 'POST', body: JSON.stringify(body) }),
+  getTeamTasks: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/team-hub/tasks${qs ? `?${qs}` : ''}`);
+  },
+  createTeamTask: (body) => request('/team-hub/tasks', { method: 'POST', body: JSON.stringify(body) }),
+  updateTeamTaskStatus: (id, body) => request(`/team-hub/tasks/${id}/status`, { method: 'PATCH', body: JSON.stringify(body) }),
 };

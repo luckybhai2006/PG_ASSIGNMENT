@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { getSocket } from '../services/socket';
@@ -15,6 +15,9 @@ import PGProfileModal from '../components/PGProfileModal';
 import RulesModal from '../components/RulesModal';
 import AcceptInviteBanner from '../components/AcceptInviteBanner';
 import TenantPendingBanner from '../components/TenantPendingBanner';
+
+// Lazy load Team Workspace drawer to preserve Lighthouse performance
+const TeamDrawer = React.lazy(() => import('../components/TeamDrawer'));
 
 import {
   Plus,
@@ -64,6 +67,135 @@ export default function Dashboard() {
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
+  const [isTeamDrawerOpen, setIsTeamDrawerOpen] = useState(false);
+  const isTeamDrawerOpenRef = useRef(isTeamDrawerOpen);
+  useEffect(() => {
+    isTeamDrawerOpenRef.current = isTeamDrawerOpen;
+  }, [isTeamDrawerOpen]);
+
+  const [pendingTasksCount, setPendingTasksCount] = useState(0);
+
+  const fetchTasksCount = useCallback(async () => {
+    if (!user || user.role === 'tenant') return;
+    try {
+      const res = await api.getTeamTasks({ mine: 'true', status: 'Assigned' });
+      setPendingTasksCount(res.tasks?.length || 0);
+    } catch {
+      // ignore silently
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchTasksCount();
+  }, [fetchTasksCount]);
+
+  const seenEventsRef = useRef(new Map());
+  const isDuplicateEvent = useCallback((id) => {
+    if (!id) return false;
+    const now = Date.now();
+    if (seenEventsRef.current.has(id)) {
+      const prev = seenEventsRef.current.get(id);
+      if (now - prev < 3500) return true;
+    }
+    seenEventsRef.current.set(id, now);
+    if (seenEventsRef.current.size > 50) {
+      for (const [k, v] of seenEventsRef.current.entries()) {
+        if (now - v > 10000) seenEventsRef.current.delete(k);
+      }
+    }
+    return false;
+  }, []);
+
+  // Smart Context-Aware Notifications for Team Hub (active ONLY when TeamDrawer is closed)
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !user || user.role === 'tenant') return;
+
+    const activePgId = pg?._id || user?.pgId?._id || user?.pgId;
+    if (activePgId) {
+      socket.emit('join_pg', activePgId);
+    }
+
+    const myId = (user._id || user.id)?.toString();
+
+    const handleTaskAssigned = (data) => {
+      const task = data.task || data;
+      const taskId = task?._id || data?._id;
+      if (isDuplicateEvent('task_assign_' + taskId)) return;
+
+      const assigneeId = (task.assignedTo?._id || task.assignedTo)?.toString();
+      if (assigneeId === myId) {
+        setPendingTasksCount((prev) => prev + 1);
+        // Show notification ONLY if drawer is closed
+        if (!isTeamDrawerOpenRef.current) {
+          showToast({
+            title: 'New Task Assigned',
+            message: data.message || `Manager assigned you: "${task.title}"`,
+            type: 'info',
+            duration: 5000,
+          });
+        }
+      }
+    };
+
+    const handleTaskUpdated = (t) => {
+      if (t.status === 'Done') setPendingTasksCount((prev) => Math.max(0, prev - 1));
+    };
+
+    // Owner / Assigner notification when a staff member marks a task Done
+    const handleTaskCompleted = (data) => {
+      const task = data.task || data;
+      const taskId = task?._id || data?._id;
+      if (isDuplicateEvent('task_done_' + taskId)) return;
+
+      const completedById = (data.completedBy?._id || data.completedBy)?.toString();
+      // Don't toast self if I was the one who marked it done
+      if (completedById !== myId && !isTeamDrawerOpenRef.current) {
+        showToast({
+          title: 'Task Completed',
+          message: data.message || `Task "${task.title}" was marked as Done!`,
+          type: 'success',
+          duration: 5000,
+        });
+      }
+    };
+
+    // Incoming team chat message notification (when drawer is closed)
+    const handleNewMessage = (msg) => {
+      if (!msg || !msg._id) return;
+      if (isDuplicateEvent('msg_' + msg._id)) return;
+
+      const senderId = (msg.sender?._id || msg.sender)?.toString();
+      // Only notify if sent by someone else AND drawer is currently closed
+      if (senderId !== myId && !isTeamDrawerOpenRef.current) {
+        const senderName = msg.sender?.name || 'Team Member';
+        const senderRole =
+          msg.sender?.role === 'owner'
+            ? 'Owner'
+            : msg.sender?.staffRole === 'manager'
+            ? 'Manager'
+            : 'Staff';
+        showToast({
+          title: `💬 Message from ${senderName} (${senderRole})`,
+          message: msg.text?.length > 70 ? msg.text.slice(0, 70) + '...' : msg.text,
+          type: 'info',
+          duration: 4500,
+        });
+      }
+    };
+
+    socket.on('TASK_ASSIGNED', handleTaskAssigned);
+    socket.on('TASK_STATUS_UPDATED', handleTaskUpdated);
+    socket.on('TASK_COMPLETED', handleTaskCompleted);
+    socket.on('TEAM_MESSAGE_RECEIVED', handleNewMessage);
+
+    return () => {
+      socket.off('TASK_ASSIGNED', handleTaskAssigned);
+      socket.off('TASK_STATUS_UPDATED', handleTaskUpdated);
+      socket.off('TASK_COMPLETED', handleTaskCompleted);
+      socket.off('TEAM_MESSAGE_RECEIVED', handleNewMessage);
+    };
+  }, [user, pg?._id, user?.pgId, showToast]);
 
   const handleOpenTenants = (tab = 'active') => {
     setTenantModalInitialTab(tab);
@@ -193,6 +325,8 @@ export default function Dashboard() {
         onOpenRules={() => setIsRulesModalOpen(true)}
         onOpenTenants={() => handleOpenTenants('active')}
         tenantCount={studentCount}
+        onOpenTeamDrawer={() => setIsTeamDrawerOpen(true)}
+        pendingTasksCount={pendingTasksCount}
       />
 
       <main style={{
@@ -683,6 +817,59 @@ export default function Dashboard() {
         isOpen={isRulesModalOpen}
         onClose={() => setIsRulesModalOpen(false)}
       />
+
+      {/* Team Workspace Right-Side Drawer (WhatsApp/Insta Style - Lazy Loaded) */}
+      {(isOwner || isStaff) && (
+        <React.Suspense
+          fallback={
+            isTeamDrawerOpen ? (
+              <div
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  width: '100%',
+                  maxWidth: '430px',
+                  background: 'var(--bg-card, #ffffff)',
+                  boxShadow: '-8px 0 30px rgba(0, 0, 0, 0.15)',
+                  zIndex: 9999,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '12px',
+                }}
+              >
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    border: '3px solid var(--border-light, #e2e8f0)',
+                    borderTopColor: 'var(--primary, #4f46e5)',
+                    animation: 'spin 0.8s linear infinite',
+                  }}
+                />
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted, #64748b)' }}>
+                  Opening Team Workspace...
+                </span>
+              </div>
+            ) : null
+          }
+        >
+          {isTeamDrawerOpen && (
+            <TeamDrawer
+              isOpen={isTeamDrawerOpen}
+              onClose={() => {
+                setIsTeamDrawerOpen(false);
+                fetchTasksCount();
+              }}
+              pg={pg}
+            />
+          )}
+        </React.Suspense>
+      )}
     </div>
   );
 }

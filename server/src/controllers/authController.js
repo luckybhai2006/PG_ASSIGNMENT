@@ -174,6 +174,13 @@ exports.login = async (req, res) => {
     const needsTenantApproval =
       user.role === 'tenant' && user.inviteStatus !== 'accepted';
 
+    let myPGs = [];
+    if (user.role === 'owner') {
+      myPGs = await PG.find({ ownerId: user._id })
+        .select('name address pgType joinCode contactPhone curfewTime wardenPhone createdAt')
+        .sort({ createdAt: 1 });
+    }
+
     return res.json({
       success: true,
       message: 'Login successful',
@@ -197,6 +204,7 @@ exports.login = async (req, res) => {
         permissions: user.permissions,
       },
       pg,
+      myPGs,
     });
   } catch (error) {
     console.error('Login Error:', error);

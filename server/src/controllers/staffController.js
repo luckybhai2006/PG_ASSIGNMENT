@@ -1,12 +1,13 @@
 const User = require('../models/User');
 const PG = require('../models/PG');
+const Staff = require('../models/Staff');
 
-// @desc    Invite / Add Editor (Staff Management with branch assignment & permissions)
+// @desc    Invite / Add Staff / Manager (Staff Management with branch assignment, role & permissions)
 // @route   POST /api/staff/invite
 // @access  Private (Owner ONLY)
 exports.inviteEditor = async (req, res) => {
   try {
-    const { name, email, password, phone, pgId, permissions } = req.body;
+    const { name, email, password, phone, pgId, permissions, staffRole = 'staff', designation = '' } = req.body;
     const ownerId = req.user._id;
 
     if (!name || !email || !password) {
@@ -33,20 +34,27 @@ exports.inviteEditor = async (req, res) => {
       });
     }
 
+    const isManager = staffRole === 'manager';
     const defaultPermissions = {
       manageRooms: true,
       manageMaintenance: true,
       manageTenants: true,
       manageComplaints: true,
       manageNotices: true,
+      canChat: true,
+      canAssignTasks: isManager,
       ...(permissions || {}),
     };
+
+    const finalDesignation = designation.trim() || (isManager ? 'Property Manager' : 'Staff Member');
 
     const editor = new User({
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password,
-      role: 'editor',
+      role: isManager ? 'manager' : 'editor',
+      staffRole: isManager ? 'manager' : 'staff',
+      designation: finalDesignation,
       pgId: targetPgId,
       phone: phone ? phone.trim() : '',
       invitedBy: ownerId,
@@ -56,13 +64,30 @@ exports.inviteEditor = async (req, res) => {
 
     await editor.save();
 
+    // Create record in dedicated Staff MongoDB collection
+    await Staff.findOneAndUpdate(
+      { userId: editor._id },
+      {
+        userId: editor._id,
+        pgId: targetPgId,
+        name: editor.name,
+        email: editor.email,
+        phone: editor.phone,
+        staffRole: editor.staffRole,
+        designation: finalDesignation,
+        invitedBy: ownerId,
+        status: 'pending',
+      },
+      { upsert: true, new: true }
+    );
+
     const populatedEditor = await User.findById(editor._id)
       .populate('pgId', 'name pgType address')
       .select('-password');
 
     return res.status(201).json({
       success: true,
-      message: `Staff Editor invite created for ${editor.name}. They will be prompted to accept the invite on login.`,
+      message: `${isManager ? 'Manager' : 'Staff'} invite created for ${editor.name}. They will be prompted to accept the invite on login.`,
       editor: populatedEditor,
     });
   } catch (error) {
@@ -116,31 +141,49 @@ exports.acceptInvite = async (req, res) => {
   }
 };
 
-// @desc    Get all staff editors for owner's PGs (optionally filtered by pgId)
+// @desc    Get staff editors (Owner across branches, Editor within their facility)
 // @route   GET /api/staff
-// @access  Private (Owner ONLY)
+// @access  Private (Owner & Editor)
 exports.getStaff = async (req, res) => {
   try {
-    const ownerId = req.user._id;
+    const user = req.user;
     const { pgId } = req.query;
 
-    // Find all PGs owned by this owner
-    const ownedPGs = await PG.find({ ownerId }).select('_id');
-    const ownedPgIds = ownedPGs.map((p) => p._id.toString());
+    const roleCondition = { $in: ['editor', 'manager', 'staff'] };
+    let query = { role: roleCondition };
 
-    let query = {
-      $or: [
-        { pgId: { $in: ownedPgIds } },
-        { invitedBy: ownerId },
-      ],
-      role: 'editor',
-    };
+    if (user.role === 'owner') {
+      const ownedPGs = await PG.find({ ownerId: user._id }).select('_id');
+      const ownedPgIds = ownedPGs.map((p) => p._id);
 
-    if (pgId && pgId !== 'ALL') {
-      query = {
-        pgId: pgId,
-        role: 'editor',
-      };
+      if (pgId && pgId !== 'ALL') {
+        query = {
+          role: roleCondition,
+          $or: [
+            { pgId: pgId },
+            { invitedBy: user._id, pgId: pgId },
+          ],
+        };
+      } else {
+        query = {
+          role: roleCondition,
+          $or: [
+            { pgId: { $in: ownedPgIds } },
+            { invitedBy: user._id },
+          ],
+        };
+      }
+    } else {
+      // Editor / Manager: load colleagues in same PG branch
+      const activePgId = pgId || user.pgId;
+      if (activePgId) {
+        query = {
+          role: roleCondition,
+          pgId: activePgId,
+        };
+      } else {
+        query = { role: roleCondition };
+      }
     }
 
     const staff = await User.find(query)
@@ -148,10 +191,39 @@ exports.getStaff = async (req, res) => {
       .select('-password')
       .sort({ createdAt: -1 });
 
-    return res.json({
+    // Respond immediately for blazing fast single-digit ms response time
+    res.json({
       success: true,
       count: staff.length,
       staff,
+    });
+
+    // Non-blocking background sync with bulkWrite
+    setImmediate(async () => {
+      try {
+        const bulkOps = staff.map((s) => ({
+          updateOne: {
+            filter: { userId: s._id },
+            update: {
+              $set: {
+                userId: s._id,
+                pgId: s.pgId?._id || s.pgId,
+                name: s.name,
+                email: s.email,
+                phone: s.phone || '',
+                staffRole: s.staffRole || (s.permissions?.canAssignTasks ? 'manager' : 'staff'),
+                designation: s.designation || (s.permissions?.canAssignTasks ? 'Property Manager' : 'Staff Member'),
+                invitedBy: s.invitedBy || user._id,
+                status: s.inviteStatus === 'accepted' ? 'active' : 'pending',
+              },
+            },
+            upsert: true,
+          },
+        }));
+        if (bulkOps.length > 0) {
+          await Staff.bulkWrite(bulkOps, { ordered: false });
+        }
+      } catch (_) {}
     });
   } catch (error) {
     console.error('Get Staff Error:', error);
@@ -168,11 +240,11 @@ exports.getStaff = async (req, res) => {
 exports.updateStaffPermissions = async (req, res) => {
   try {
     const ownerId = req.user._id;
-    const { permissions, pgId } = req.body;
+    const { permissions, pgId, staffRole, designation } = req.body;
 
     const editor = await User.findOne({
       _id: req.params.id,
-      role: 'editor',
+      role: { $in: ['editor', 'manager', 'staff'] },
     });
 
     if (!editor) {
@@ -194,6 +266,14 @@ exports.updateStaffPermissions = async (req, res) => {
       });
     }
 
+    if (staffRole) {
+      editor.staffRole = staffRole;
+      editor.role = staffRole === 'manager' ? 'manager' : 'editor';
+    }
+    if (designation !== undefined) {
+      editor.designation = designation.trim();
+    }
+
     if (permissions && typeof permissions === 'object') {
       editor.permissions = {
         manageRooms: true,
@@ -201,6 +281,8 @@ exports.updateStaffPermissions = async (req, res) => {
         manageTenants: true,
         manageComplaints: true,
         manageNotices: true,
+        canChat: true,
+        canAssignTasks: editor.staffRole === 'manager',
         ...(editor.permissions?.toObject ? editor.permissions.toObject() : editor.permissions || {}),
         ...permissions,
       };
@@ -217,6 +299,23 @@ exports.updateStaffPermissions = async (req, res) => {
     }
 
     await editor.save();
+
+    // Sync Staff collection
+    await Staff.findOneAndUpdate(
+      { userId: editor._id },
+      {
+        userId: editor._id,
+        pgId: editor.pgId,
+        name: editor.name,
+        email: editor.email,
+        phone: editor.phone || '',
+        staffRole: editor.staffRole || (editor.permissions?.canAssignTasks ? 'manager' : 'staff'),
+        designation: editor.designation || (editor.permissions?.canAssignTasks ? 'Property Manager' : 'Staff Member'),
+        invitedBy: editor.invitedBy || ownerId,
+        status: editor.inviteStatus === 'accepted' ? 'active' : 'pending',
+      },
+      { upsert: true }
+    ).catch(() => {});
 
     const updatedEditor = await User.findById(editor._id)
       .populate('pgId', 'name pgType address')
@@ -266,7 +365,7 @@ exports.deleteStaff = async (req, res) => {
 
     const editor = await User.findOne({
       _id: req.params.id,
-      role: 'editor',
+      role: { $in: ['editor', 'manager', 'staff'] },
     });
 
     if (!editor) {
@@ -288,6 +387,7 @@ exports.deleteStaff = async (req, res) => {
     }
 
     await User.findByIdAndDelete(editor._id);
+    await Staff.deleteOne({ userId: editor._id }).catch(() => {});
 
     return res.json({
       success: true,

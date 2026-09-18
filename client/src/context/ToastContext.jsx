@@ -1,16 +1,50 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { CheckCircle2, AlertCircle, Info, Bell, X } from 'lucide-react';
 
 const ToastContext = createContext(null);
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
+  const recentToastsRef = useRef(new Map());
 
   const removeToast = useCallback((id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const showToast = useCallback(({ title, message, type = 'info', duration = 4500 }) => {
+  const showToast = useCallback((arg1, arg2 = 'info') => {
+    let title, message, type, duration;
+    if (typeof arg1 === 'string') {
+      message = arg1;
+      type = arg2 || 'info';
+      title = type === 'success' ? 'Success' : type === 'error' ? 'Alert' : 'Notice';
+      duration = 4500;
+    } else if (typeof arg1 === 'object' && arg1 !== null) {
+      title = arg1.title || (arg1.type === 'success' ? 'Success' : arg1.type === 'error' ? 'Alert' : 'Notice');
+      message = arg1.message || arg1.text || '';
+      type = arg1.type || 'info';
+      duration = arg1.duration || 4500;
+    }
+
+    if (!message && !title) return;
+
+    // Deduplication guard: ignore exact same toast arriving within 3 seconds
+    const dedupeKey = `${title}__${message}__${type}`;
+    const now = Date.now();
+    if (recentToastsRef.current.has(dedupeKey)) {
+      const lastTime = recentToastsRef.current.get(dedupeKey);
+      if (now - lastTime < 3000) {
+        return; // Suppress duplicate toast
+      }
+    }
+    recentToastsRef.current.set(dedupeKey, now);
+
+    // Keep map memory clean
+    if (recentToastsRef.current.size > 25) {
+      for (const [k, v] of recentToastsRef.current.entries()) {
+        if (now - v > 8000) recentToastsRef.current.delete(k);
+      }
+    }
+
     const id = Date.now() + Math.random().toString(36).substring(2, 6);
     const newToast = { id, title, message, type };
 

@@ -50,7 +50,7 @@ io.use(async (socket, next) => {
   }
 });
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   const user = socket.user;
   const userIdStr = user._id.toString();
 
@@ -60,12 +60,22 @@ io.on('connection', (socket) => {
     socket.join(`pg_${user.pgId.toString()}`);
   }
 
+  if (user.role === 'owner') {
+    try {
+      const PG = require('./models/PG');
+      const ownerPgs = await PG.find({ ownerId: user._id }).select('_id').lean();
+      ownerPgs.forEach((p) => socket.join(`pg_${p._id.toString()}`));
+    } catch (e) {
+      console.error('Owner join PGs error:', e);
+    }
+  }
+
   socket.on('join_pg', (pgId) => {
-    if (pgId) socket.join(`pg_${pgId}`);
+    if (pgId) socket.join(`pg_${pgId.toString()}`);
   });
 
   socket.on('leave_pg', (pgId) => {
-    if (pgId) socket.leave(`pg_${pgId}`);
+    if (pgId) socket.leave(`pg_${pgId.toString()}`);
   });
 
   socket.on('disconnect', () => {});
@@ -90,10 +100,24 @@ function emitToPG(pgId, event, data) {
   }
 }
 
+function emitToRooms(rooms, event, data) {
+  if (ioInstance && Array.isArray(rooms) && rooms.length > 0) {
+    const valid = rooms.filter(Boolean).map((r) => r.toString());
+    if (valid.length > 0) {
+      let b = ioInstance;
+      valid.forEach((r) => {
+        b = b.to(r);
+      });
+      b.emit(event, data);
+    }
+  }
+}
+
 // Make helpers available globally on app
 app.set('socketIO', ioInstance);
 app.set('emitToUser', emitToUser);
 app.set('emitToPG', emitToPG);
+app.set('emitToRooms', emitToRooms);
 
 // Middlewares
 app.use(cors({
@@ -131,6 +155,7 @@ app.use('/api/pg', require('./routes/pgRoutes'));
 app.use('/api/staff', require('./routes/staffRoutes'));
 app.use('/api/tenants', require('./routes/tenantRoutes'));
 app.use('/api/complaints', require('./routes/complaintRoutes'));
+app.use('/api/team-hub', require('./routes/teamHubRoutes'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

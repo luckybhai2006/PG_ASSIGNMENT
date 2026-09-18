@@ -16,9 +16,10 @@ import {
   Loader2,
   X,
   ShieldCheck,
+  MessageSquare,
 } from 'lucide-react';
 
-export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tenantCount, onOpenTenants }) {
+export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tenantCount, onOpenTenants, onOpenTeamDrawer, pendingTasksCount = 0 }) {
   const { user, pg, myPGs, logout, switchActivePG, addPGBranch } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -446,6 +447,50 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
             )}
           </button>
 
+          {/* Team Workspace Drawer Toggle (Owner & Staff) */}
+          {(user?.role === 'owner' || user?.role === 'editor') && onOpenTeamDrawer && (
+            <button
+              type="button"
+              onClick={onOpenTeamDrawer}
+              style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                height: '34px',
+                padding: '0 10px',
+                borderRadius: '9px',
+                border: '1px solid var(--border-light, #e2e8f0)',
+                background: 'var(--bg-hover, #f8fafc)',
+                color: 'var(--primary, #4f46e5)',
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              title="Team Workspace: Chat & Assigned Tasks"
+            >
+              <MessageSquare size={15} />
+              <span className="hide-on-mobile">Team Hub</span>
+              {pendingTasksCount > 0 && (
+                <span
+                  style={{
+                    background: '#ef4444',
+                    color: '#ffffff',
+                    fontSize: '0.62rem',
+                    fontWeight: 800,
+                    borderRadius: '999px',
+                    padding: '1px 5px',
+                    minWidth: '15px',
+                    textAlign: 'center',
+                  }}
+                >
+                  {pendingTasksCount}
+                </span>
+              )}
+            </button>
+          )}
+
           {/* Notice Bell */}
           <button
             onClick={onOpenNotices}
@@ -650,10 +695,46 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
                       background: 'rgba(6, 182, 212, 0.12)',
                       color: '#0891b2',
                       padding: '1px 6px',
-                      borderRadius: '12px'
+                      borderRadius: '6px',
                     }}>
-                      {displayTenantCount}
+                      {tenantCount || 0}
                     </span>
+                  </button>
+                )}
+
+                {isStaff && onOpenTeamDrawer && (
+                  <button
+                    onClick={() => { onOpenTeamDrawer(); setDropdownOpen(false); }}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px',
+                      borderRadius: '7px',
+                      fontSize: '0.82rem',
+                      color: 'var(--text-main, #334155)',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover, #f8fafc)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <MessageSquare size={15} color="var(--primary, #4f46e5)" />
+                      <span>Team Hub (Chat & Tasks)</span>
+                    </div>
+                    {pendingTasksCount > 0 && (
+                      <span style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        background: '#fee2e2',
+                        color: '#ef4444',
+                        padding: '1px 6px',
+                        borderRadius: '6px',
+                      }}>
+                        {pendingTasksCount}
+                      </span>
+                    )}
                   </button>
                 )}
 

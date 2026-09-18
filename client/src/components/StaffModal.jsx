@@ -14,6 +14,7 @@ import {
   DoorOpen,
   BellRing,
   Loader2,
+  ClipboardList,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +25,8 @@ const PERMISSION_CONFIG = [
   { key: 'manageComplaints', label: 'Complaints', icon: MessageSquare, desc: 'Update ticket progress' },
   { key: 'manageRooms', label: 'Rooms Hub', icon: DoorOpen, desc: 'Add / edit room info' },
   { key: 'manageNotices', label: 'Notices', icon: BellRing, desc: 'Post PG announcements' },
+  { key: 'canChat', label: 'Team Chat', icon: MessageSquare, desc: 'Send & view team messages' },
+  { key: 'canAssignTasks', label: 'Task Manager', icon: ClipboardList, desc: 'Assign tasks to other staff (Manager Role)', defaultFalse: true },
 ];
 
 export default function StaffModal({ isOpen, onClose }) {
@@ -34,12 +37,16 @@ export default function StaffModal({ isOpen, onClose }) {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [selectedPgId, setSelectedPgId] = useState(pg?._id || '');
+  const [staffRole, setStaffRole] = useState('staff'); // 'manager' | 'staff'
+  const [designation, setDesignation] = useState('');
   const [invitePermissions, setInvitePermissions] = useState({
     manageMaintenance: true,
     manageTenants: true,
     manageComplaints: true,
     manageRooms: false,
     manageNotices: false,
+    canChat: true,
+    canAssignTasks: false,
   });
 
   const [branchFilter, setBranchFilter] = useState(pg?._id || 'ALL');
@@ -79,8 +86,11 @@ export default function StaffModal({ isOpen, onClose }) {
   };
 
   const handleToggleStaffPermission = async (staffMember, permKey) => {
-    // Current permission value (defaults to true if undefined)
-    const currentVal = staffMember.permissions?.[permKey] !== false;
+    // Current permission value
+    const isDefaultFalse = permKey === 'canAssignTasks';
+    const currentVal = isDefaultFalse
+      ? !!staffMember.permissions?.[permKey]
+      : staffMember.permissions?.[permKey] !== false;
     const nextVal = !currentVal;
     setActionLoadingId(`${staffMember._id}-${permKey}`);
     setError('');
@@ -93,6 +103,8 @@ export default function StaffModal({ isOpen, onClose }) {
       manageComplaints: true,
       manageRooms: true,
       manageNotices: true,
+      canChat: true,
+      canAssignTasks: false,
       ...(staffMember.permissions || {}),
       [permKey]: nextVal,
     };
@@ -184,18 +196,21 @@ export default function StaffModal({ isOpen, onClose }) {
 
     try {
       const res = await api.inviteEditor({
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim(),
         password,
-        phone,
+        phone: phone.trim(),
         pgId: selectedPgId || pg?._id,
         permissions: invitePermissions,
+        staffRole,
+        designation: designation.trim(),
       });
       setSuccess(res.message || 'Staff Editor invite dispatched successfully!');
       setName('');
       setEmail('');
       setPassword('');
       setPhone('');
+      setDesignation('');
       fetchStaff();
     } catch (err) {
       setError(err.message || 'Failed to invite editor');
@@ -336,6 +351,68 @@ export default function StaffModal({ isOpen, onClose }) {
               </span>
             </div>
 
+            {/* Operational Role Selector (Manager vs Staff) */}
+            <div className="form-group" style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <ShieldCheck size={13} color="var(--primary, #4f46e5)" /> Operational Role *
+              </label>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStaffRole('manager');
+                    setInvitePermissions((prev) => ({ ...prev, canAssignTasks: true, canChat: true }));
+                    if (!designation) setDesignation('Property Manager');
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: staffRole === 'manager' ? '2px solid var(--primary, #4f46e5)' : '1px solid var(--border-light, #e2e8f0)',
+                    background: staffRole === 'manager' ? 'var(--primary-light, #eef2ff)' : 'var(--bg-card, #ffffff)',
+                    color: staffRole === 'manager' ? 'var(--primary, #4f46e5)' : 'var(--text-main, #0f172a)',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span>👔 Manager (Assigns Tasks)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStaffRole('staff');
+                    setInvitePermissions((prev) => ({ ...prev, canAssignTasks: false, canChat: true }));
+                    if (designation === 'Property Manager') setDesignation('');
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: staffRole === 'staff' ? '2px solid var(--primary, #4f46e5)' : '1px solid var(--border-light, #e2e8f0)',
+                    background: staffRole === 'staff' ? 'var(--primary-light, #eef2ff)' : 'var(--bg-card, #ffffff)',
+                    color: staffRole === 'staff' ? 'var(--primary, #4f46e5)' : 'var(--text-main, #0f172a)',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span>🛠️ Staff Member (Does Work)</span>
+                </button>
+              </div>
+            </div>
+
             <div className="grid-2-col" style={{ gap: '10px' }}>
               <div className="form-group" style={{ marginBottom: '8px' }}>
                 <label style={{ fontSize: '0.78rem', fontWeight: 600 }}>Full Name *</label>
@@ -349,6 +426,19 @@ export default function StaffModal({ isOpen, onClose }) {
                 />
               </div>
 
+              <div className="form-group" style={{ marginBottom: '8px' }}>
+                <label style={{ fontSize: '0.78rem', fontWeight: 600 }}>Designation / Job Role</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder={staffRole === 'manager' ? "e.g. Property Manager" : "e.g. Housekeeping / Electrician"}
+                  value={designation}
+                  onChange={(e) => setDesignation(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid-2-col" style={{ gap: '10px' }}>
               <div className="form-group" style={{ marginBottom: '8px' }}>
                 <label style={{ fontSize: '0.78rem', fontWeight: 600 }}>Email Address *</label>
                 <input
@@ -372,17 +462,17 @@ export default function StaffModal({ isOpen, onClose }) {
                   required
                 />
               </div>
+            </div>
 
-              <div className="form-group" style={{ marginBottom: '8px' }}>
-                <label style={{ fontSize: '0.78rem', fontWeight: 600 }}>Phone Number</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="+91 98765..."
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div>
+            <div className="form-group" style={{ marginBottom: '8px' }}>
+              <label style={{ fontSize: '0.78rem', fontWeight: 600 }}>Phone Number</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="+91 98765..."
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
             </div>
 
             {/* Granular Permissions Selection */}
@@ -395,7 +485,7 @@ export default function StaffModal({ isOpen, onClose }) {
                   const Icon = p.icon;
                   const isChecked = !!invitePermissions[p.key];
                   return (
-                    <label
+                    <div
                       key={p.key}
                       onClick={() => toggleInvitePermission(p.key)}
                       style={{
@@ -413,8 +503,8 @@ export default function StaffModal({ isOpen, onClose }) {
                       <input
                         type="checkbox"
                         checked={isChecked}
-                        onChange={() => {}}
-                        style={{ marginTop: '2px', accentColor: 'var(--primary, #4f46e5)' }}
+                        readOnly
+                        style={{ marginTop: '2px', accentColor: 'var(--primary, #4f46e5)', pointerEvents: 'none' }}
                       />
                       <div style={{ fontSize: '0.75rem' }}>
                         <div style={{ fontWeight: 700, color: isChecked ? 'var(--primary, #4f46e5)' : 'var(--text-main, #0f172a)', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -422,7 +512,7 @@ export default function StaffModal({ isOpen, onClose }) {
                         </div>
                         <div style={{ color: 'var(--text-muted, #64748b)', fontSize: '0.68rem' }}>{p.desc}</div>
                       </div>
-                    </label>
+                    </div>
                   );
                 })}
               </div>
@@ -517,8 +607,25 @@ export default function StaffModal({ isOpen, onClose }) {
                       {/* Card Header: User info + Status & Actions */}
                       <div className="staff-card-header">
                         <div className="staff-card-info">
-                          <div className="staff-card-name">
-                            {st.name}
+                          <div className="staff-card-name" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span>{st.name}</span>
+                            <span
+                              style={{
+                                fontSize: '0.68rem',
+                                fontWeight: 800,
+                                padding: '2px 8px',
+                                borderRadius: '10px',
+                                background: st.staffRole === 'manager' || st.role === 'manager' || st.permissions?.canAssignTasks ? 'rgba(79, 70, 229, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                                color: st.staffRole === 'manager' || st.role === 'manager' || st.permissions?.canAssignTasks ? 'var(--primary, #4f46e5)' : '#059669',
+                              }}
+                            >
+                              {st.staffRole === 'manager' || st.role === 'manager' || st.permissions?.canAssignTasks ? '👔 Manager' : '🛠️ Staff Member'}
+                            </span>
+                            {st.designation && (
+                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted, #64748b)', fontWeight: 600 }}>
+                                • {st.designation}
+                              </span>
+                            )}
                           </div>
                           <div className="staff-card-contacts">
                             <span>{st.email}</span>
@@ -589,7 +696,9 @@ export default function StaffModal({ isOpen, onClose }) {
                         <div className="staff-permissions-grid">
                           {PERMISSION_CONFIG.map((p) => {
                             const Icon = p.icon;
-                            const hasPerm = st.permissions?.[p.key] !== false;
+                            const hasPerm = p.defaultFalse
+                              ? !!st.permissions?.[p.key]
+                              : st.permissions?.[p.key] !== false;
                             const isToggling = actionLoadingId === `${st._id}-${p.key}`;
                             return (
                               <button

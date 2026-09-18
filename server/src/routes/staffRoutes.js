@@ -11,9 +11,9 @@ const { protect, authorizeRole } = require('../middleware/auth');
 
 router.use(protect);
 
-// Staff management (Owner ONLY)
+// Staff management (Owner & Editor)
 router.post('/invite', authorizeRole('owner'), inviteEditor);
-router.get('/', authorizeRole('owner'), getStaff);
+router.get('/', authorizeRole('owner', 'editor'), getStaff);
 router.put('/:id/permissions', authorizeRole('owner'), updateStaffPermissions);
 router.delete('/:id', authorizeRole('owner'), deleteStaff);
 

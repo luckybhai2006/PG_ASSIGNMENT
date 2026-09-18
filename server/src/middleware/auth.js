@@ -58,7 +58,7 @@ const authorizeRole = (...roles) => {
 
 // Middleware: For Editors, require accepted invite to view PG data or perform manipulations
 const requireAcceptedInvite = (req, res, next) => {
-  if (req.user && req.user.role === 'editor' && req.user.inviteStatus !== 'accepted') {
+  if (req.user && ['editor', 'manager', 'staff'].includes(req.user.role) && req.user.inviteStatus !== 'accepted') {
     return res.status(403).json({
       success: false,
       needsInviteAcceptance: true,
@@ -86,7 +86,7 @@ const checkPermission = (permissionKey) => {
       return next();
     }
 
-    if (req.user && req.user.role === 'editor') {
+    if (req.user && ['editor', 'manager', 'staff'].includes(req.user.role)) {
       const userPerms = req.user.permissions || {};
       if (userPerms[permissionKey] === false) {
         return res.status(403).json({

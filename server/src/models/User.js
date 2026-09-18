@@ -22,9 +22,19 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['owner', 'editor', 'tenant'],
+      enum: ['owner', 'editor', 'manager', 'staff', 'tenant'],
       required: [true, 'Role is required'],
       default: 'tenant',
+    },
+    staffRole: {
+      type: String,
+      enum: ['manager', 'staff'],
+      default: 'staff',
+    },
+    designation: {
+      type: String,
+      trim: true,
+      default: '',
     },
     pgId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -70,6 +80,8 @@ const userSchema = new mongoose.Schema(
       manageTenants: { type: Boolean, default: true },
       manageComplaints: { type: Boolean, default: true },
       manageNotices: { type: Boolean, default: true },
+      canChat: { type: Boolean, default: true },
+      canAssignTasks: { type: Boolean, default: false },
     },
   },
   {
