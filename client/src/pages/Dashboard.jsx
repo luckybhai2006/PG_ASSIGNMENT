@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { getSocket } from '../services/socket';
+import { playNotificationChime } from '../services/sound';
 import { api } from '../services/api';
 import Navbar from '../components/Navbar';
 import StatCards from '../components/StatCards';
@@ -152,6 +153,7 @@ export default function Dashboard() {
         setPendingTasksCount((prev) => prev + 1);
         // Show notification ONLY if drawer is closed
         if (!isTeamDrawerOpenRef.current) {
+          playNotificationChime();
           showToast({
             title: 'New Task Assigned',
             message: data.message || `Manager assigned you: "${task.title}"`,
@@ -175,6 +177,7 @@ export default function Dashboard() {
       const completedById = (data.completedBy?._id || data.completedBy)?.toString();
       // Don't toast self if I was the one who marked it done
       if (completedById !== myId && !isTeamDrawerOpenRef.current) {
+        playNotificationChime();
         showToast({
           title: 'Task Completed',
           message: data.message || `Task "${task.title}" was marked as Done!`,
@@ -199,6 +202,7 @@ export default function Dashboard() {
             : msg.sender?.staffRole === 'manager'
               ? 'Manager'
               : 'Staff';
+        playNotificationChime();
         showToast({
           title: `💬 Message from ${senderName} (${senderRole})`,
           message: msg.text?.length > 70 ? msg.text.slice(0, 70) + '...' : msg.text,
@@ -219,7 +223,133 @@ export default function Dashboard() {
       socket.off('TASK_COMPLETED', handleTaskCompleted);
       socket.off('TEAM_MESSAGE_RECEIVED', handleNewMessage);
     };
-  }, [user, pg?._id, user?.pgId, showToast]);
+  }, [user, pg?._id, user?.pgId, showToast, isDuplicateEvent]);
+
+  // Smart live polling fallback when Socket.IO is not connected (e.g. on Vercel Serverless)
+  useEffect(() => {
+    if (authLoading || !user || user.role === 'tenant') return;
+    const socket = getSocket();
+    if (socket && socket.connected) return;
+
+    const activePgId = pg?._id || user?.pgId?._id || user?.pgId || '';
+    const myId = (user._id || user.id)?.toString();
+    const knownMsgIds = new Set();
+    const knownTasksMap = new Map();
+    let initialSyncDone = false;
+    let isPolling = false;
+
+    const pollLiveUpdates = async () => {
+      if (socket && socket.connected) return;
+      if (isPolling) return;
+      isPolling = true;
+
+      try {
+        const [msgRes, taskRes] = await Promise.all([
+          api.getTeamMessages(activePgId).catch(() => ({ messages: [] })),
+          api.getTeamTasks({ pgId: activePgId }).catch(() => ({ tasks: [] })),
+        ]);
+
+        const msgs = msgRes?.messages || [];
+        const tasks = taskRes?.tasks || [];
+
+        if (!initialSyncDone) {
+          msgs.forEach((m) => {
+            if (m?._id) knownMsgIds.add(m._id.toString());
+          });
+          tasks.forEach((t) => {
+            if (t?._id) knownTasksMap.set(t._id.toString(), t.status);
+          });
+          initialSyncDone = true;
+          isPolling = false;
+          return;
+        }
+
+        // 1. Process new incoming messages
+        for (const msg of msgs) {
+          const msgIdStr = msg?._id?.toString();
+          if (msgIdStr && !knownMsgIds.has(msgIdStr)) {
+            knownMsgIds.add(msgIdStr);
+            const senderId = (msg.sender?._id || msg.sender)?.toString();
+            if (senderId !== myId && !isTeamDrawerOpenRef.current) {
+              if (!isDuplicateEvent('msg_' + msgIdStr)) {
+                const senderName = msg.sender?.name || 'Team Member';
+                const senderRole =
+                  msg.sender?.role === 'owner'
+                    ? 'Owner'
+                    : msg.sender?.staffRole === 'manager'
+                      ? 'Manager'
+                      : 'Staff';
+                playNotificationChime();
+                showToast({
+                  title: `💬 Message from ${senderName} (${senderRole})`,
+                  message: msg.text?.length > 70 ? msg.text.slice(0, 70) + '...' : msg.text,
+                  type: 'info',
+                  duration: 4500,
+                });
+              }
+            }
+          }
+        }
+
+        // 2. Process tasks (new task assigned to me or task marked as Done)
+        let myAssignedCount = 0;
+        for (const t of tasks) {
+          const tIdStr = t?._id?.toString();
+          if (!tIdStr) continue;
+
+          const assigneeId = (t.assignedTo?._id || t.assignedTo)?.toString();
+          if (assigneeId === myId && t.status === 'Assigned') {
+            myAssignedCount++;
+          }
+
+          if (!knownTasksMap.has(tIdStr)) {
+            knownTasksMap.set(tIdStr, t.status);
+            if (assigneeId === myId && !isTeamDrawerOpenRef.current) {
+              if (!isDuplicateEvent('task_assign_' + tIdStr)) {
+                playNotificationChime();
+                showToast({
+                  title: 'New Task Assigned',
+                  message: `Manager assigned you: "${t.title}"`,
+                  type: 'info',
+                  duration: 5000,
+                });
+              }
+            }
+          } else {
+            const prevStatus = knownTasksMap.get(tIdStr);
+            if (prevStatus !== t.status) {
+              knownTasksMap.set(tIdStr, t.status);
+              if (t.status === 'Done') {
+                const completedById = (t.completedBy?._id || t.completedBy)?.toString();
+                if (completedById !== myId && !isTeamDrawerOpenRef.current) {
+                  if (!isDuplicateEvent('task_done_' + tIdStr)) {
+                    playNotificationChime();
+                    showToast({
+                      title: 'Task Completed',
+                      message: `Task "${t.title}" was marked as Done!`,
+                      type: 'success',
+                      duration: 5000,
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        setPendingTasksCount(myAssignedCount);
+      } catch (_) {
+        // silent error handling
+      } finally {
+        isPolling = false;
+      }
+    };
+
+    pollLiveUpdates();
+    const interval = setInterval(pollLiveUpdates, 3200);
+
+    return () => clearInterval(interval);
+  }, [authLoading, user, pg?._id, user?.pgId, showToast, isDuplicateEvent]);
 
   const handleOpenTenants = (tab = 'active') => {
     setTenantModalInitialTab(tab);

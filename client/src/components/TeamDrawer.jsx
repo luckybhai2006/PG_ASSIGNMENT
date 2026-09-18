@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { getSocket } from '../services/socket';
+import { playNotificationChime } from '../services/sound';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -122,10 +123,13 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
 
     const handleNewMessage = (msg) => {
       if (!msg) return;
+      const myId = (user?._id || user?.id)?.toString();
+      const msgSenderId = (msg.sender?._id || msg.sender)?.toString();
+      if (msgSenderId && msgSenderId !== myId) {
+        playNotificationChime();
+      }
       setMessages((prev) => {
         if (prev.some((m) => m._id === msg._id)) return prev;
-        const myId = (user?._id || user?.id)?.toString();
-        const msgSenderId = (msg.sender?._id || msg.sender)?.toString();
         if (msgSenderId === myId) {
           const tempIdx = prev.findIndex(
             (m) => m._id && m._id.toString().startsWith('temp_') && m.text === msg.text
@@ -161,6 +165,79 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
       socket.off('TASK_STATUS_UPDATED', handleTaskUpdated);
     };
   }, [isOpen, user, pg?._id, user?.pgId]);
+
+  // Live polling fallback when WebSocket is not connected (e.g. hosted on Vercel Serverless)
+  useEffect(() => {
+    if (!isOpen) return;
+    const socket = getSocket();
+    if (socket && socket.connected) return;
+
+    const activePgId = pg?._id || user?.pgId?._id || user?.pgId || '';
+    if (!activePgId) return;
+
+    let isPolling = false;
+    const pollInterval = setInterval(async () => {
+      if (socket && socket.connected) return;
+      if (isPolling) return;
+      isPolling = true;
+
+      try {
+        if (activeTab === 'chat') {
+          const res = await api.getTeamMessages(activePgId);
+          if (res?.messages && Array.isArray(res.messages)) {
+            setMessages((prev) => {
+              const prevMap = new Map();
+              prev.forEach((m) => {
+                if (m._id) prevMap.set(m._id.toString(), m);
+              });
+
+              let hasNew = false;
+              let hasNewFromOther = false;
+              const next = [...prev];
+              const myId = (user?._id || user?.id)?.toString();
+
+              for (const m of res.messages) {
+                const idStr = m._id?.toString();
+                if (!prevMap.has(idStr)) {
+                  const senderId = (m.sender?._id || m.sender)?.toString();
+                  if (senderId === myId) {
+                    const tempIdx = next.findIndex(
+                      (item) => item._id && item._id.toString().startsWith('temp_') && item.text === m.text
+                    );
+                    if (tempIdx !== -1) {
+                      next[tempIdx] = m;
+                      hasNew = true;
+                      continue;
+                    }
+                  } else {
+                    hasNewFromOther = true;
+                  }
+                  next.push(m);
+                  hasNew = true;
+                }
+              }
+
+              if (hasNewFromOther) {
+                playNotificationChime();
+              }
+              return hasNew ? next : prev;
+            });
+          }
+        } else if (activeTab === 'tasks') {
+          const res = await api.getTeamTasks({ pgId: activePgId });
+          if (res?.tasks && Array.isArray(res.tasks)) {
+            setTasks(res.tasks);
+          }
+        }
+      } catch (_) {
+        // silent catch
+      } finally {
+        isPolling = false;
+      }
+    }, 2800);
+
+    return () => clearInterval(pollInterval);
+  }, [isOpen, activeTab, pg?._id, user?.pgId, user?._id, user?.id]);
 
   // Handle typing & @mention trigger
   const handleTextChange = (e) => {
