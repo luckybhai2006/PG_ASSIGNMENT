@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   UserPlus,
@@ -136,7 +136,10 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded, initialTab
     }
   };
 
+  const isFetchingTenantsRef = useRef(false);
   const fetchTenants = async (term = '') => {
+    if (isFetchingTenantsRef.current) return;
+    isFetchingTenantsRef.current = true;
     try {
       const res = await api.getTenants(term);
       setTenants(res.tenants || []);
@@ -156,10 +159,15 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded, initialTab
       });
     } catch (err) {
       console.error('Failed to load tenants:', err);
+    } finally {
+      isFetchingTenantsRef.current = false;
     }
   };
 
+  const isFetchingRoomsRef = useRef(false);
   const fetchRooms = async () => {
+    if (isFetchingRoomsRef.current) return;
+    isFetchingRoomsRef.current = true;
     setLoadingRooms(true);
     try {
       const res = await api.getRooms();
@@ -168,14 +176,14 @@ export default function TenantModal({ isOpen, onClose, onTenantAdded, initialTab
     } catch (err) {
       console.error('Failed to load rooms:', err);
     } finally {
+      isFetchingRoomsRef.current = false;
       setLoadingRooms(false);
     }
   };
 
   useEffect(() => {
     if (isOpen) {
-      fetchTenants(search);
-      fetchRooms();
+      Promise.all([fetchTenants(search), fetchRooms()]);
       setActiveTab(initialTab);
       setRoomFilterAvailability('ALL');
       setError('');

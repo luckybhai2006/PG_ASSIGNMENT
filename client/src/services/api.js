@@ -6,8 +6,53 @@ export const getToken = () => localStorage.getItem('token');
 export const setToken = (token) => localStorage.setItem('token', token);
 export const removeToken = () => localStorage.removeItem('token');
 
+// Global in-flight request deduplication map to prevent duplicate parallel network hits
+const inFlightGetRequests = new Map();
+
 async function request(endpoint, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
   const token = getToken();
+
+  // Deduplicate concurrent in-flight GET requests across the entire application
+  if (method === 'GET') {
+    const dedupeKey = `${endpoint}__${token || ''}`;
+    if (inFlightGetRequests.has(dedupeKey)) {
+      return inFlightGetRequests.get(dedupeKey);
+    }
+
+    const promise = (async () => {
+      try {
+        const headers = {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...options.headers,
+        };
+
+        const response = await fetch(`${API_URL}${endpoint}`, {
+          ...options,
+          headers,
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          const error = new Error(data.message || 'Something went wrong');
+          error.status = response.status;
+          error.data = data;
+          throw error;
+        }
+
+        return data;
+      } finally {
+        inFlightGetRequests.delete(dedupeKey);
+      }
+    })();
+
+    inFlightGetRequests.set(dedupeKey, promise);
+    return promise;
+  }
+
+  // Non-GET requests (POST, PUT, DELETE, PATCH)
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),

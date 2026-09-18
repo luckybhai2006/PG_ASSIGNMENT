@@ -110,6 +110,7 @@ exports.createPGBranch = async (req, res) => {
     }
 
     const cleanPgType = ['boys', 'girls', 'co-ed'].includes(pgType) ? pgType : 'girls';
+    const typeLabel = cleanPgType === 'girls' ? 'Girls PG' : cleanPgType === 'co-ed' ? 'Co-Ed PG' : 'Boys PG';
 
     const defaultRules = cleanPgType === 'girls'
       ? [
@@ -117,6 +118,14 @@ exports.createPGBranch = async (req, res) => {
           'Male visitors strictly prohibited inside residential floors.',
           'Inform warden prior to night outs with guardian authorization.',
           'Maintain quiet hours in study areas and common corridors after 11:00 PM.',
+        ]
+      : cleanPgType === 'co-ed'
+      ? [
+          'Main gate closes at 10:00 PM.',
+          'Resident ID card verification mandatory at security entrance.',
+          'Visitors permitted only in designated lounge/lobby area.',
+          'Maintain quiet hours in residential blocks after 10:30 PM.',
+          'Strictly no smoking, alcohol, or unauthorized entry into other wings.',
         ]
       : [
           'Main gate closes at 10:30 PM.',
@@ -131,12 +140,12 @@ exports.createPGBranch = async (req, res) => {
       ownerId: req.user._id,
       contactPhone: contactPhone ? contactPhone.trim() : (req.user.phone || ''),
       pgType: cleanPgType,
-      curfewTime: curfewTime ? curfewTime.trim() : (cleanPgType === 'girls' ? '9:30 PM' : '10:30 PM'),
+      curfewTime: curfewTime ? curfewTime.trim() : (cleanPgType === 'girls' ? '9:30 PM' : cleanPgType === 'co-ed' ? '10:00 PM' : '10:30 PM'),
       wardenPhone: wardenPhone ? wardenPhone.trim() : '',
       rules: defaultRules,
       noticeBoard: [
         {
-          title: `Welcome to ${name.trim()} (${cleanPgType === 'girls' ? 'Girls PG' : 'Boys PG'})`,
+          title: `Welcome to ${name.trim()} (${typeLabel})`,
           message: 'Feel free to post room or amenity issues here for fast resolution.',
           priority: 'normal',
           postedBy: req.user._id,
@@ -160,7 +169,7 @@ exports.createPGBranch = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: `Branch "${newBranch.name}" (${cleanPgType === 'girls' ? 'Girls PG' : 'Boys PG'}) created successfully!`,
+      message: `Branch "${newBranch.name}" (${typeLabel}) created successfully!`,
       pg: pgData,
       myPGs,
     });

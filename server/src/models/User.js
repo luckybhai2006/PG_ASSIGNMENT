@@ -111,4 +111,8 @@ userSchema.methods.toJSON = function () {
   return obj;
 };
 
+// High performance compound indexes for fast tenant and staff lookup
+userSchema.index({ pgId: 1, role: 1, inviteStatus: 1 });
+userSchema.index({ pgId: 1, role: 1 });
+
 module.exports = mongoose.model('User', userSchema);

@@ -42,14 +42,33 @@ const STATUS_TABS = [
 const PRIORITIES = ['All', 'Low', 'Medium', 'High', 'Urgent'];
 const STATUSES = ['All', 'Pending', 'In Progress', 'Resolved', 'Rejected'];
 
+// Stale-While-Revalidate memory cache for instant 0ms Home screen rendering
+let homeDataCache = {
+  pgId: null,
+  stats: null,
+  complaints: [],
+};
+
 export default function Dashboard() {
-  const { user, pg, needsInviteAcceptance, needsTenantApproval } = useAuth();
+  const { user, pg, needsInviteAcceptance, needsTenantApproval, loading: authLoading } = useAuth();
   const { showToast } = useToast();
 
-  const [stats, setStats] = useState(null);
-  const [complaints, setComplaints] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const activePgId = pg?._id || user?.pgId?._id || user?.pgId || '';
+  const isMatchingCache = homeDataCache.pgId === activePgId && activePgId !== '' && homeDataCache.stats !== null;
+
+  const [stats, setStats] = useState(() => (isMatchingCache ? homeDataCache.stats : null));
+  const [complaints, setComplaints] = useState(() => (isMatchingCache ? homeDataCache.complaints : []));
+  const [loading, setLoading] = useState(() => !isMatchingCache);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Sync with cache when activePgId resolves
+  useEffect(() => {
+    if (activePgId && homeDataCache.pgId === activePgId && homeDataCache.stats) {
+      setStats(homeDataCache.stats);
+      setComplaints(homeDataCache.complaints || []);
+      setLoading(false);
+    }
+  }, [activePgId]);
 
   // Filters state
   const [selectedStatus, setSelectedStatus] = useState('All');
@@ -74,20 +93,28 @@ export default function Dashboard() {
   }, [isTeamDrawerOpen]);
 
   const [pendingTasksCount, setPendingTasksCount] = useState(0);
+  const isFetchingTasksCountRef = useRef(false);
 
   const fetchTasksCount = useCallback(async () => {
-    if (!user || user.role === 'tenant') return;
+    if (authLoading || !user || user.role === 'tenant') return;
+    if (isFetchingTasksCountRef.current) return;
+    isFetchingTasksCountRef.current = true;
+
     try {
       const res = await api.getTeamTasks({ mine: 'true', status: 'Assigned' });
       setPendingTasksCount(res.tasks?.length || 0);
     } catch {
       // ignore silently
+    } finally {
+      isFetchingTasksCountRef.current = false;
     }
-  }, [user]);
+  }, [authLoading, user]);
 
   useEffect(() => {
-    fetchTasksCount();
-  }, [fetchTasksCount]);
+    if (!authLoading && user && user.role !== 'tenant') {
+      fetchTasksCount();
+    }
+  }, [authLoading, user, fetchTasksCount]);
 
   const seenEventsRef = useRef(new Map());
   const isDuplicateEvent = useCallback((id) => {
@@ -173,8 +200,8 @@ export default function Dashboard() {
           msg.sender?.role === 'owner'
             ? 'Owner'
             : msg.sender?.staffRole === 'manager'
-            ? 'Manager'
-            : 'Staff';
+              ? 'Manager'
+              : 'Staff';
         showToast({
           title: `💬 Message from ${senderName} (${senderRole})`,
           message: msg.text?.length > 70 ? msg.text.slice(0, 70) + '...' : msg.text,
@@ -202,9 +229,16 @@ export default function Dashboard() {
     setIsTenantModalOpen(true);
   };
 
+  const isFetchingDataRef = useRef(false);
+
   const fetchData = useCallback(async () => {
-    if (needsInviteAcceptance) return;
-    setLoading(true);
+    if (authLoading || needsInviteAcceptance) return;
+    if (isFetchingDataRef.current) return;
+    isFetchingDataRef.current = true;
+
+    if (!homeDataCache.stats && !stats) {
+      setLoading(true);
+    }
     try {
       const [statsRes, complaintsRes] = await Promise.all([
         api.getStats(),
@@ -217,17 +251,28 @@ export default function Dashboard() {
       ]);
       setStats(statsRes.stats);
       setComplaints(complaintsRes.complaints || []);
+
+      if (activePgId) {
+        homeDataCache = {
+          pgId: activePgId,
+          stats: statsRes.stats,
+          complaints: complaintsRes.complaints || [],
+        };
+      }
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {
+      isFetchingDataRef.current = false;
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [needsInviteAcceptance, selectedStatus, selectedCategory, selectedPriority, searchQuery, pg?._id]);
+  }, [authLoading, needsInviteAcceptance, selectedStatus, selectedCategory, selectedPriority, searchQuery, pg?._id]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!authLoading) {
+      fetchData();
+    }
+  }, [authLoading, fetchData]);
 
   // Real-time Socket.io listener for new complaints, status updates, and room maintenance
   useEffect(() => {

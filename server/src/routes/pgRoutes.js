@@ -29,7 +29,9 @@ router.use(protect);
 router.get('/', requireAcceptedInvite, getPGDetails);
 
 // Multi-PG Branch Management (Owner ONLY)
+router.post('/branch', authorizeRole('owner'), createPGBranch);
 router.post('/branches', authorizeRole('owner'), createPGBranch);
+router.get('/branch', authorizeRole('owner'), getBranches);
 router.get('/branches', authorizeRole('owner'), getBranches);
 
 // Edit PG Profile / Facility details (Owner ONLY)

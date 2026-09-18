@@ -91,4 +91,10 @@ const complaintSchema = new mongoose.Schema(
   }
 );
 
+// High performance compound indexes for single-digit millisecond queries
+complaintSchema.index({ pgId: 1, createdAt: -1 });
+complaintSchema.index({ pgId: 1, status: 1 });
+complaintSchema.index({ pgId: 1, priority: 1, status: 1 });
+complaintSchema.index({ pgId: 1, tenantId: 1 });
+
 module.exports = mongoose.model('Complaint', complaintSchema);

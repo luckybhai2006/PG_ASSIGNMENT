@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   UserPlus,
@@ -55,12 +55,17 @@ export default function StaffModal({ isOpen, onClose }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const isFetchingStaffRef = useRef(false);
   const fetchStaff = async () => {
+    if (isFetchingStaffRef.current) return;
+    isFetchingStaffRef.current = true;
     try {
       const res = await api.getStaff();
       setStaffList(res.staff || []);
     } catch (err) {
       console.error('Failed to load staff list:', err);
+    } finally {
+      isFetchingStaffRef.current = false;
     }
   };
 
@@ -74,7 +79,7 @@ export default function StaffModal({ isOpen, onClose }) {
       setError('');
       setSuccess('');
     }
-  }, [isOpen, pg]);
+  }, [isOpen, pg?._id]);
 
   if (!isOpen) return null;
 

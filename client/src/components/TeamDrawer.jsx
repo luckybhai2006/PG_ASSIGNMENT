@@ -283,11 +283,11 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
       prev.map((t) =>
         t._id === taskId
           ? {
-              ...t,
-              status: newStatus,
-              completionNote: newStatus === 'Done' ? note : t.completionNote,
-              completedAt: newStatus === 'Done' ? new Date() : t.completedAt,
-            }
+            ...t,
+            status: newStatus,
+            completionNote: newStatus === 'Done' ? note : t.completionNote,
+            completedAt: newStatus === 'Done' ? new Date() : t.completedAt,
+          }
           : t
       )
     );
@@ -1088,10 +1088,10 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat' }) {
                     t.priority === 'Urgent'
                       ? '#ef4444'
                       : t.priority === 'High'
-                      ? '#f97316'
-                      : t.priority === 'Medium'
-                      ? '#eab308'
-                      : '#10b981';
+                        ? '#f97316'
+                        : t.priority === 'Medium'
+                          ? '#eab308'
+                          : '#10b981';
 
                   return (
                     <div

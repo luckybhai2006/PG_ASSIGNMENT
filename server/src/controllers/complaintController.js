@@ -141,10 +141,10 @@ exports.getComplaints = async (req, res) => {
     const complaints = await Complaint.find(query)
       .populate('tenantId', 'name email roomNumber phone')
       .populate('registeredBy', 'name role')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    const sanitizedComplaints = complaints.map((c) => {
-      const doc = c.toObject();
+    const sanitizedComplaints = complaints.map((doc) => {
       if (doc.tenantId && doc.tenantId.roomNumber && doc.tenantId.roomNumber !== 'Unassigned') {
         doc.roomNumber = doc.tenantId.roomNumber;
       }
@@ -311,18 +311,27 @@ exports.getStats = async (req, res) => {
       filter.tenantId = req.user._id;
     }
 
-    const total = await Complaint.countDocuments(filter);
-    const pending = await Complaint.countDocuments({ ...filter, status: 'Pending' });
-    const inProgress = await Complaint.countDocuments({ ...filter, status: 'In Progress' });
-    const resolved = await Complaint.countDocuments({ ...filter, status: 'Resolved' });
-    const urgent = await Complaint.countDocuments({
-      ...filter,
-      priority: 'Urgent',
-      status: { $ne: 'Resolved' },
-    });
-
-    const totalTenants = await User.countDocuments({ pgId, role: 'tenant', inviteStatus: 'accepted' });
-    const pendingStudents = await User.countDocuments({ pgId, role: 'tenant', inviteStatus: 'pending' });
+    const [
+      total,
+      pending,
+      inProgress,
+      resolved,
+      urgent,
+      totalTenants,
+      pendingStudents,
+    ] = await Promise.all([
+      Complaint.countDocuments(filter),
+      Complaint.countDocuments({ ...filter, status: 'Pending' }),
+      Complaint.countDocuments({ ...filter, status: 'In Progress' }),
+      Complaint.countDocuments({ ...filter, status: 'Resolved' }),
+      Complaint.countDocuments({
+        ...filter,
+        priority: 'Urgent',
+        status: { $ne: 'Resolved' },
+      }),
+      User.countDocuments({ pgId, role: 'tenant', inviteStatus: 'accepted' }),
+      User.countDocuments({ pgId, role: 'tenant', inviteStatus: 'pending' }),
+    ]);
 
     return res.json({
       success: true,
