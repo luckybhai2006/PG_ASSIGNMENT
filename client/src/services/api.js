@@ -1,6 +1,15 @@
 const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const API_URL = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl.replace(/\/$/, '')}/api`;
-export const SOCKET_URL = API_URL.replace(/\/api$/, '');
+
+// Production Socket.IO backend URL:
+// 1. Explicit VITE_SOCKET_URL (e.g. https://your-backend.onrender.com)
+// 2. VITE_API_URL stripped of /api
+// 3. Fallback to localhost:5000 in dev
+const rawSocketUrl = import.meta.env.VITE_SOCKET_URL;
+export const SOCKET_URL = (rawSocketUrl && rawSocketUrl.trim())
+  ? rawSocketUrl.trim().replace(/\/$/, '').replace(/\/api$/, '')
+  : (rawApiUrl.startsWith('http') ? API_URL.replace(/\/api$/, '') : 'http://localhost:5000');
+
 
 export const getToken = () => localStorage.getItem('token');
 export const setToken = (token) => localStorage.setItem('token', token);

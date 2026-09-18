@@ -1,4 +1,4 @@
-﻿import { io } from 'socket.io-client';
+import { io } from 'socket.io-client';
 import { SOCKET_URL, getToken } from './api';
 
 let socket = null;
@@ -22,20 +22,31 @@ export function initSocket() {
     socket.disconnect();
   }
 
+  // Vercel serverless functions do not support persistent WebSockets / Socket.IO.
+  // If SOCKET_URL points to a vercel.app domain without a dedicated VITE_SOCKET_URL, warn gracefully.
+  if (SOCKET_URL && SOCKET_URL.includes('.vercel.app') && !import.meta.env.VITE_SOCKET_URL) {
+    console.warn(
+      `[Socket.IO] Vercel serverless (${SOCKET_URL}) does not support WebSockets. ` +
+      `To enable real-time Socket.IO updates, deploy the server to a persistent host (e.g. Render/Railway) and set VITE_SOCKET_URL=https://<your-backend-url> in Vercel settings.`
+    );
+    return null;
+  }
+
   socket = io(SOCKET_URL, {
     auth: { token },
-    transports: ['websocket', 'polling'],
+    transports: ['polling', 'websocket'],
     reconnection: true,
-    reconnectionAttempts: 10,
-    reconnectionDelay: 1000,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 2000,
+    timeout: 10000,
   });
 
   socket.on('connect', () => {
-    // Socket connected
+    // Socket connected successfully
   });
 
   socket.on('connect_error', (err) => {
-    // Graceful fallback
+    console.warn('[Socket.IO] Connection notice:', err.message);
   });
 
   return socket;

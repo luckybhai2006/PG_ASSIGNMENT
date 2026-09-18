@@ -193,7 +193,7 @@ app.use((err, req, res, next) => {
 // Local development server
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== 'production') {
+if (!process.env.VERCEL) {
   connectDB()
     .then(() => {
       server.listen(PORT, () => {
