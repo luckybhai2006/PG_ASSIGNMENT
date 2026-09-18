@@ -6,17 +6,14 @@ import { api } from '../services/api';
 import Navbar from '../components/Navbar';
 import StatCards from '../components/StatCards';
 import ComplaintCard from '../components/ComplaintCard';
-import ComplaintModal from '../components/ComplaintModal';
-import StatusUpdateModal from '../components/StatusUpdateModal';
-import StaffModal from '../components/StaffModal';
-import TenantModal from '../components/TenantModal';
-import NoticeBoardModal from '../components/NoticeBoardModal';
-import PGProfileModal from '../components/PGProfileModal';
-import RulesModal from '../components/RulesModal';
-import AcceptInviteBanner from '../components/AcceptInviteBanner';
-import TenantPendingBanner from '../components/TenantPendingBanner';
-
-// Lazy load Team Workspace drawer to preserve Lighthouse performance
+// Lazy load non-critical modals and drawers to preserve fast Lighthouse FCP/LCP
+const ComplaintModal = React.lazy(() => import('../components/ComplaintModal'));
+const StatusUpdateModal = React.lazy(() => import('../components/StatusUpdateModal'));
+const StaffModal = React.lazy(() => import('../components/StaffModal'));
+const TenantModal = React.lazy(() => import('../components/TenantModal'));
+const NoticeBoardModal = React.lazy(() => import('../components/NoticeBoardModal'));
+const PGProfileModal = React.lazy(() => import('../components/PGProfileModal'));
+const RulesModal = React.lazy(() => import('../components/RulesModal'));
 const TeamDrawer = React.lazy(() => import('../components/TeamDrawer'));
 
 import {
@@ -814,54 +811,64 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* Modals */}
-      <ComplaintModal
-        isOpen={isComplaintModalOpen}
-        onClose={() => setIsComplaintModalOpen(false)}
-        onComplaintCreated={fetchData}
-        userRole={user?.role}
-      />
+      {/* Modals - Lazy Loaded & Conditionally Mounted */}
+      <React.Suspense fallback={null}>
+        {isComplaintModalOpen && (
+          <ComplaintModal
+            isOpen={isComplaintModalOpen}
+            onClose={() => setIsComplaintModalOpen(false)}
+            onComplaintCreated={fetchData}
+            userRole={user?.role}
+          />
+        )}
 
-      <StatusUpdateModal
-        isOpen={isStatusModalOpen}
-        onClose={() => setIsStatusModalOpen(false)}
-        complaint={selectedComplaintForStatus}
-        onUpdated={fetchData}
-      />
+        {isStatusModalOpen && (
+          <StatusUpdateModal
+            isOpen={isStatusModalOpen}
+            onClose={() => setIsStatusModalOpen(false)}
+            complaint={selectedComplaintForStatus}
+            onUpdated={fetchData}
+          />
+        )}
 
-      {isOwner && (
-        <StaffModal
-          isOpen={isStaffModalOpen}
-          onClose={() => setIsStaffModalOpen(false)}
-          activePgId={pg?._id}
-        />
-      )}
+        {isOwner && isStaffModalOpen && (
+          <StaffModal
+            isOpen={isStaffModalOpen}
+            onClose={() => setIsStaffModalOpen(false)}
+            activePgId={pg?._id}
+          />
+        )}
 
-      {isStaff && (
-        <TenantModal
-          isOpen={isTenantModalOpen}
-          onClose={() => setIsTenantModalOpen(false)}
-          onTenantAdded={fetchData}
-          initialTab={tenantModalInitialTab}
-        />
-      )}
+        {isStaff && isTenantModalOpen && (
+          <TenantModal
+            isOpen={isTenantModalOpen}
+            onClose={() => setIsTenantModalOpen(false)}
+            onTenantAdded={fetchData}
+            initialTab={tenantModalInitialTab}
+          />
+        )}
 
-      <NoticeBoardModal
-        isOpen={isNoticeModalOpen}
-        onClose={() => setIsNoticeModalOpen(false)}
-      />
+        {isNoticeModalOpen && (
+          <NoticeBoardModal
+            isOpen={isNoticeModalOpen}
+            onClose={() => setIsNoticeModalOpen(false)}
+          />
+        )}
 
-      {isOwner && (
-        <PGProfileModal
-          isOpen={isProfileModalOpen}
-          onClose={() => setIsProfileModalOpen(false)}
-        />
-      )}
+        {isOwner && isProfileModalOpen && (
+          <PGProfileModal
+            isOpen={isProfileModalOpen}
+            onClose={() => setIsProfileModalOpen(false)}
+          />
+        )}
 
-      <RulesModal
-        isOpen={isRulesModalOpen}
-        onClose={() => setIsRulesModalOpen(false)}
-      />
+        {isRulesModalOpen && (
+          <RulesModal
+            isOpen={isRulesModalOpen}
+            onClose={() => setIsRulesModalOpen(false)}
+          />
+        )}
+      </React.Suspense>
 
       {/* Team Workspace Right-Side Drawer (WhatsApp/Insta Style - Lazy Loaded) */}
       {(isOwner || isStaff) && (

@@ -189,6 +189,8 @@ export default function Navbar({ onOpenNotices, onOpenProfile, onOpenRules, tena
           <img
             src="/logo.png"
             alt="PG Management System"
+            width="38"
+            height="38"
             style={{
               width: '38px',
               height: '38px',

@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user?._id, user?.id, showToast]);
 
-  const loadUser = async () => {
+  const loadUser = useCallback(async () => {
     const token = getToken();
     if (!token) {
       setLoading(false);
@@ -99,11 +99,11 @@ export const AuthProvider = ({ children }) => {
       inFlightRef.current = false;
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadUser();
-  }, []);
+  }, [loadUser]);
 
   // Synchronize active PG facility type (girls, boys, co-ed) on root element for dynamic subtle theme styling
   useEffect(() => {
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
     document.documentElement.setAttribute('data-pg-type', pgType);
   }, [pg?.pgType]);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     const data = await api.login({ email, password });
     setToken(data.token);
     setUser(data.user);
@@ -121,9 +121,9 @@ export const AuthProvider = ({ children }) => {
     setNeedsTenantApproval(Boolean(data.needsTenantApproval));
     initSocket();
     return data;
-  };
+  }, []);
 
-  const registerOwner = async (formData) => {
+  const registerOwner = useCallback(async (formData) => {
     const data = await api.registerOwner(formData);
     setToken(data.token);
     setUser(data.user);
@@ -133,9 +133,9 @@ export const AuthProvider = ({ children }) => {
     setNeedsTenantApproval(false);
     initSocket();
     return data;
-  };
+  }, []);
 
-  const registerTenant = async (formData) => {
+  const registerTenant = useCallback(async (formData) => {
     const data = await api.registerTenant(formData);
     setToken(data.token);
     setUser(data.user);
@@ -144,9 +144,9 @@ export const AuthProvider = ({ children }) => {
     setNeedsTenantApproval(Boolean(data.needsTenantApproval));
     initSocket();
     return data;
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     disconnectSocket();
     removeToken();
     setUser(null);
@@ -154,56 +154,72 @@ export const AuthProvider = ({ children }) => {
     setMyPGs([]);
     setNeedsInviteAcceptance(false);
     setNeedsTenantApproval(false);
-  };
+  }, []);
 
-  const acceptInvite = async () => {
+  const acceptInvite = useCallback(async () => {
     const data = await api.acceptInvite();
     setUser(data.user);
     setPg(data.pg);
     setNeedsInviteAcceptance(false);
     setNeedsTenantApproval(false);
     return data;
-  };
+  }, []);
 
-  const switchActivePG = async (pgId) => {
+  const switchActivePG = useCallback(async (pgId) => {
     const data = await api.switchActivePG({ pgId });
     setUser(data.user);
     setPg(data.pg);
     if (data.myPGs) setMyPGs(data.myPGs);
     return data;
-  };
+  }, []);
 
-  const addPGBranch = async (branchData) => {
+  const addPGBranch = useCallback(async (branchData) => {
     const data = await api.createPGBranch(branchData);
     setPg(data.pg);
     if (data.myPGs) setMyPGs(data.myPGs);
     return data;
-  };
+  }, []);
 
   const updatePGState = useCallback((newPgData) => {
     setPg((prev) => ({ ...prev, ...newPgData }));
   }, []);
 
+  const contextValue = React.useMemo(() => ({
+    user,
+    pg,
+    myPGs,
+    loading,
+    needsInviteAcceptance,
+    needsTenantApproval,
+    login,
+    registerOwner,
+    registerTenant,
+    logout,
+    acceptInvite,
+    switchActivePG,
+    addPGBranch,
+    updatePGState,
+    refreshUser: loadUser,
+  }), [
+    user,
+    pg,
+    myPGs,
+    loading,
+    needsInviteAcceptance,
+    needsTenantApproval,
+    login,
+    registerOwner,
+    registerTenant,
+    logout,
+    acceptInvite,
+    switchActivePG,
+    addPGBranch,
+    updatePGState,
+    loadUser,
+  ]);
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        pg,
-        myPGs,
-        loading,
-        needsInviteAcceptance,
-        needsTenantApproval,
-        login,
-        registerOwner,
-        registerTenant,
-        logout,
-        acceptInvite,
-        switchActivePG,
-        addPGBranch,
-        updatePGState,
-        refreshUser: loadUser,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useMemo } from 'react';
 import { CheckCircle2, AlertCircle, Info, Bell, X } from 'lucide-react';
 
 const ToastContext = createContext(null);
@@ -57,8 +57,10 @@ export function ToastProvider({ children }) {
     }
   }, [removeToast]);
 
+  const contextValue = useMemo(() => ({ showToast, removeToast }), [showToast, removeToast]);
+
   return (
-    <ToastContext.Provider value={{ showToast, removeToast }}>
+    <ToastContext.Provider value={contextValue}>
       {children}
 
       {/* Floating Notification Popups Container */}

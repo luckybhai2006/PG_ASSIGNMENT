@@ -81,10 +81,6 @@ export default function AuthPage() {
   };
 
   useEffect(() => {
-    fetchPGList();
-  }, []);
-
-  useEffect(() => {
     if (activeTab === 'tenant-reg') {
       fetchPGList();
     }
@@ -154,7 +150,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="auth-root-wrapper">
+    <main className="auth-root-wrapper">
       <style>{`
         /* ROOT WRAPPER: Perfectly Centered Horizontally & Vertically */
         .auth-root-wrapper {
@@ -621,6 +617,9 @@ export default function AuthPage() {
               <img
                 src="/logo.png"
                 alt="PG Portal"
+                width="42"
+                height="42"
+                fetchpriority="high"
                 style={{
                   width: '42px',
                   height: '42px',
@@ -795,6 +794,9 @@ export default function AuthPage() {
                 <img
                   src="/logo.png"
                   alt="PG Portal"
+                  width="46"
+                  height="46"
+                  fetchpriority="high"
                   className="auth-mobile-logo"
                 />
               </div>
@@ -1541,6 +1543,6 @@ export default function AuthPage() {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 }
