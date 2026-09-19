@@ -117,8 +117,10 @@ export default function NoticeBoardModal({ isOpen, onClose }) {
                   />
                 </div>
                 <div className="form-group" style={{ marginBottom: '10px' }}>
-                  <label>Priority</label>
+                  <label htmlFor="notice-priority">Priority</label>
                   <select
+                    id="notice-priority"
+                    aria-label="Notice Priority"
                     className="form-select"
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}

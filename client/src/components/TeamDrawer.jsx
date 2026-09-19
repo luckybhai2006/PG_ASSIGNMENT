@@ -1051,6 +1051,8 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat', pg: p
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 105px', gap: '6px', width: '100%' }}>
                   <select
+                    id="task-assignee-select"
+                    aria-label="Task Assignee Staff Member"
                     value={taskAssignee}
                     onChange={(e) => setTaskAssignee(e.target.value)}
                     required
@@ -1080,6 +1082,8 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat', pg: p
                   </select>
 
                   <select
+                    id="task-priority-select"
+                    aria-label="Task Priority"
                     value={taskPriority}
                     onChange={(e) => setTaskPriority(e.target.value)}
                     style={{

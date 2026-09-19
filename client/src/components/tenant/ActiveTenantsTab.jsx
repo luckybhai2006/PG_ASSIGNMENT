@@ -187,6 +187,8 @@ export default function ActiveTenantsTab({
                     </div>
                     <div className="tenant-room-edit-controls">
                       <select
+                        id={`change-room-${t._id}`}
+                        aria-label={`Change room for ${t.name}`}
                         className="form-select tenant-room-edit-select"
                         value={selectedNewRoom}
                         onChange={(e) => setSelectedNewRoom(e.target.value)}
@@ -244,6 +246,8 @@ export default function ActiveTenantsTab({
                     </span>
                     <div className="tenant-branch-select-wrap">
                       <select
+                        id={`transfer-branch-${t._id}`}
+                        aria-label={`Transfer ${t.name} to another branch`}
                         className="form-select tenant-branch-select"
                         defaultValue=""
                         disabled={transferringId === t._id}

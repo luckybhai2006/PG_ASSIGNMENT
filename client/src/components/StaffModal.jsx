@@ -331,10 +331,12 @@ export default function StaffModal({ isOpen, onClose }) {
 
             {/* Target Branch Selector */}
             <div className="form-group" style={{ marginBottom: '12px' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <label htmlFor="staff-branch-select" style={{ fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <Building2 size={13} color="var(--primary, #4f46e5)" /> Assigned PG Facility / Branch *
               </label>
               <select
+                id="staff-branch-select"
+                aria-label="Assigned PG Facility or Branch"
                 className="form-input"
                 value={selectedPgId}
                 onChange={(e) => setSelectedPgId(e.target.value)}
@@ -670,6 +672,8 @@ export default function StaffModal({ isOpen, onClose }) {
                         {myPGs && myPGs.length > 1 ? (
                           <div className="staff-branch-select-wrap">
                             <select
+                              id={`staff-branch-${st._id}`}
+                              aria-label={`Shift ${st.name} to another branch`}
                               value={st.pgId?._id || st.pgId}
                               onChange={(e) => handleTransferBranch(st, e.target.value)}
                               disabled={actionLoadingId === `branch-${st._id}`}

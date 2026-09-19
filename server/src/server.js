@@ -143,7 +143,7 @@ io.on('connection', async (socket) => {
         if (pgDoc?.ownerId) {
           targetRooms.add(`user_${pgDoc.ownerId.toString()}`);
         }
-      } catch (_) {}
+      } catch (_) { }
 
       if (cleanMentions.length > 0) {
         cleanMentions.forEach((uid) => uid && targetRooms.add(`user_${uid.toString()}`));
@@ -171,7 +171,7 @@ io.on('connection', async (socket) => {
     }
   });
 
-  socket.on('disconnect', () => {});
+  socket.on('disconnect', () => { });
 });
 
 ioInstance = io;

@@ -41,9 +41,11 @@ export default function DirectEnrollTab({
         </div>
 
         <div className="form-group direct-enroll-field">
-          <label>Room Number *</label>
+          <label htmlFor="direct-enroll-room">Room Number *</label>
           {rooms.length > 0 ? (
             <select
+              id="direct-enroll-room"
+              aria-label="Room Number"
               className="form-select"
               value={roomNumber}
               onChange={(e) => setRoomNumber(e.target.value)}

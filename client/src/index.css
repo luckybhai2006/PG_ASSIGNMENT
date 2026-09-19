@@ -22,8 +22,8 @@
   --border-focus: #c7d2fe;
 
   --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
+  --text-muted: #475569;
+  --text-light: #475569;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -3043,17 +3043,17 @@ body:has(.modal-backdrop) {
 
 .complaint-priority-chip.priority-medium {
   background: #fef3c7;
-  color: #d97706;
+  color: #b45309;
   border: 1px solid #fde68a;
 }
-.complaint-priority-chip.priority-medium .complaint-priority-dot { background: #d97706; }
+.complaint-priority-chip.priority-medium .complaint-priority-dot { background: #b45309; }
 
 .complaint-priority-chip.priority-low {
   background: #f1f5f9;
-  color: #64748b;
+  color: #475569;
   border: 1px solid #e2e8f0;
 }
-.complaint-priority-chip.priority-low .complaint-priority-dot { background: #94a3b8; }
+.complaint-priority-chip.priority-low .complaint-priority-dot { background: #64748b; }
 
 .complaint-header-actions {
   display: flex;
@@ -3075,17 +3075,17 @@ body:has(.modal-backdrop) {
 
 .complaint-status-badge.status-pending {
   background: #fffbeb;
-  color: #d97706;
+  color: #b45309;
   border: 1px solid #fde68a;
 }
 .complaint-status-badge.status-inprogress {
   background: #eff6ff;
-  color: #2563eb;
+  color: #1d4ed8;
   border: 1px solid #bfdbfe;
 }
 .complaint-status-badge.status-resolved {
   background: #ecfdf5;
-  color: #059669;
+  color: #047857;
   border: 1px solid #a7f3d0;
 }
 .complaint-status-badge.status-rejected {
@@ -3095,7 +3095,7 @@ body:has(.modal-backdrop) {
 }
 .complaint-status-badge.status-default {
   background: #f8fafc;
-  color: #64748b;
+  color: #475569;
   border: 1px solid #e2e8f0;
 }
 

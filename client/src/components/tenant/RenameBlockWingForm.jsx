@@ -54,11 +54,13 @@ export default function RenameBlockWingForm({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
         {/* 1. Current Block */}
         <div className="form-group" style={{ margin: 0 }}>
-          <label style={{ fontSize: '0.74rem', fontWeight: 700 }}>
+          <label htmlFor="select-current-block-name" style={{ fontSize: '0.74rem', fontWeight: 700 }}>
             1. Select Current Block Name *
           </label>
           {availableBlocks.length > 0 ? (
             <select
+              id="select-current-block-name"
+              aria-label="Select Current Block Name"
               className="form-input"
               value={oldBlockName}
               onChange={(e) => {

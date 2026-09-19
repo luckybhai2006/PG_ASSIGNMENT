@@ -200,6 +200,8 @@ export default function PendingApprovalsTab({
                   <div style={{ flex: '1 1 240px', display: 'flex', gap: '8px', alignItems: 'center' }}>
                     {rooms.length > 0 ? (
                       <select
+                        id={`allocate-room-${t._id}`}
+                        aria-label={`Allocate Room for ${t.name}`}
                         className="form-select"
                         value={currentAllocated}
                         onChange={(e) => onSelectRoom(t._id, e.target.value)}

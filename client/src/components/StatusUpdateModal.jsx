@@ -87,8 +87,10 @@ export default function StatusUpdateModal({ isOpen, onClose, complaint, onUpdate
           </div>
 
           <div className="form-group">
-            <label>Select Status</label>
+            <label htmlFor="update-complaint-status">Select Status</label>
             <select
+              id="update-complaint-status"
+              aria-label="Select Status"
               className="form-select"
               value={status}
               onChange={(e) => setStatus(e.target.value)}

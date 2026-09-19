@@ -219,7 +219,7 @@ export default function StatCards({ stats, onFilterStatus, onFilterPriority, act
                 {item.value}
               </div>
 
-              <div style={{ fontSize: '0.68rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '3px' }}>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted, #475569)', display: 'flex', alignItems: 'center', gap: '3px' }}>
                 <span>{item.sublabel}</span>
                 {isActive && <span style={{ color: item.color, fontWeight: 700 }}>• Active</span>}
               </div>

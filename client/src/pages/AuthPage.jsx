@@ -352,7 +352,7 @@ export default function AuthPage() {
 
         .auth-subtitle {
           font-size: 0.82rem;
-          color: var(--text-muted, #64748b);
+          color: var(--text-muted, #475569);
           margin-top: 4px;
           margin-bottom: 0;
         }
@@ -377,7 +377,7 @@ export default function AuthPage() {
           background: transparent;
           font-size: 0.82rem;
           font-weight: 600;
-          color: var(--text-muted, #64748b);
+          color: var(--text-muted, #475569);
           border-radius: 9px;
           cursor: pointer;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -647,7 +647,7 @@ export default function AuthPage() {
               </span>
             </div>
 
-            <h2 style={{
+            <p style={{
               fontSize: '1.75rem',
               fontWeight: 800,
               lineHeight: 1.25,
@@ -656,7 +656,7 @@ export default function AuthPage() {
               color: '#f8fafc',
             }}>
               Organized hostel living, zero friction.
-            </h2>
+            </p>
             <p style={{
               fontSize: '0.88rem',
               color: '#cbd5e1',
@@ -1107,7 +1107,7 @@ export default function AuthPage() {
 
                 <div className="form-group" style={{ marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-                    <label style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700 }}>
+                    <label htmlFor="tenant-pg-select" style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700 }}>
                       Select {tGender === 'female' ? 'Girls' : 'Boys'} PG Facility *
                     </label>
                     <button
@@ -1141,6 +1141,8 @@ export default function AuthPage() {
 
                     return (
                       <select
+                        id="tenant-pg-select"
+                        aria-label={`Select ${tGender === 'female' ? 'Girls' : 'Boys'} PG Facility`}
                         className="form-select"
                         value={tPgId}
                         onChange={(e) => setTPgId(e.target.value)}

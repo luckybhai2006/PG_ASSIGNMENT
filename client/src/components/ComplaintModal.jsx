@@ -133,13 +133,15 @@ export default function ComplaintModal({ isOpen, onClose, onComplaintCreated, us
           {/* Staff Selecting Tenant */}
           {isStaff && (
             <div className="form-group">
-              <label>Select Tenant (To register on their behalf):</label>
+              <label htmlFor="complaint-tenant-select">Select Tenant (To register on their behalf):</label>
               {tenants.length === 0 ? (
                 <p style={{ fontSize: '0.85rem', color: '#b91c1c' }}>
                   No tenants registered in this PG yet. Please add a tenant first.
                 </p>
               ) : (
                 <select
+                  id="complaint-tenant-select"
+                  aria-label="Select Tenant"
                   className="form-select"
                   value={selectedTenantId}
                   onChange={handleTenantSelect}
@@ -169,8 +171,10 @@ export default function ComplaintModal({ isOpen, onClose, onComplaintCreated, us
 
           <div className="grid-2-col" style={{ gap: '14px' }}>
             <div className="form-group">
-              <label>Category *</label>
+              <label htmlFor="complaint-category-select">Category *</label>
               <select
+                id="complaint-category-select"
+                aria-label="Category"
                 className="form-select"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -182,8 +186,10 @@ export default function ComplaintModal({ isOpen, onClose, onComplaintCreated, us
             </div>
 
             <div className="form-group">
-              <label>Priority</label>
+              <label htmlFor="complaint-priority-select">Priority</label>
               <select
+                id="complaint-priority-select"
+                aria-label="Priority"
                 className="form-select"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}

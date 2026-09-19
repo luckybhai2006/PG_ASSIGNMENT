@@ -798,7 +798,7 @@ export default function Dashboard() {
                       fontSize: '0.78rem',
                       fontWeight: 700,
                       background: isActive ? 'var(--bg-card, #ffffff)' : 'transparent',
-                      color: isActive ? 'var(--text-main, #0f172a)' : 'var(--text-muted, #64748b)',
+                      color: isActive ? 'var(--text-main, #0f172a)' : 'var(--text-muted, #475569)',
                       boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
                       whiteSpace: 'nowrap',
                       flexShrink: 0,
@@ -808,7 +808,7 @@ export default function Dashboard() {
                     {count !== null && (
                       <span style={{
                         background: isActive ? 'var(--primary-light, #eef2ff)' : 'var(--bg-hover, #e2e8f0)',
-                        color: isActive ? 'var(--primary, #4f46e5)' : 'var(--text-muted, #64748b)',
+                        color: isActive ? 'var(--primary, #4f46e5)' : '#334155',
                         fontSize: '0.68rem',
                         fontWeight: 800,
                         padding: '1px 5px',
@@ -873,8 +873,10 @@ export default function Dashboard() {
             {/* Dropdown Filters */}
             <div className="filter-controls-wrap">
               <div className="filter-control-item">
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #64748b)', whiteSpace: 'nowrap' }}>Category:</span>
+                <label htmlFor="filter-category" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #475569)', whiteSpace: 'nowrap', cursor: 'pointer' }}>Category:</label>
                 <select
+                  id="filter-category"
+                  aria-label="Filter by Category"
                   className="form-select"
                   style={{ height: '36px', padding: '0 8px', fontSize: '0.78rem' }}
                   value={selectedCategory}
@@ -887,8 +889,10 @@ export default function Dashboard() {
               </div>
 
               <div className="filter-control-item">
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #64748b)', whiteSpace: 'nowrap' }}>Priority:</span>
+                <label htmlFor="filter-priority" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted, #475569)', whiteSpace: 'nowrap', cursor: 'pointer' }}>Priority:</label>
                 <select
+                  id="filter-priority"
+                  aria-label="Filter by Priority"
                   className="form-select"
                   style={{ height: '36px', padding: '0 8px', fontSize: '0.78rem' }}
                   value={selectedPriority}
@@ -946,9 +950,9 @@ export default function Dashboard() {
             }}>
               <Inbox size={24} />
             </div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main, #0f172a)' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main, #0f172a)', margin: '0 auto 6px' }}>
               No Complaints Found
-            </h3>
+            </h2>
             <p style={{ color: 'var(--text-muted, #64748b)', fontSize: '0.82rem', maxWidth: '380px', margin: '6px auto 16px', lineHeight: 1.5 }}>
               {searchQuery || selectedCategory !== 'All' || selectedStatus !== 'All' || selectedPriority !== 'All'
                 ? 'No tickets match your filter criteria.'
@@ -972,9 +976,9 @@ export default function Dashboard() {
               marginBottom: '12px',
               padding: '0 2px',
             }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted, #475569)' }}>
+              <h2 style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted, #475569)', margin: 0 }}>
                 Showing <strong style={{ color: 'var(--text-main, #0f172a)' }}>{complaints.length}</strong> complaints
-              </span>
+              </h2>
             </div>
 
             {complaints.map((complaint) => (
