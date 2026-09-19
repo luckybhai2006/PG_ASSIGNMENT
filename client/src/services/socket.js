@@ -8,7 +8,7 @@ const noopSocket = {
   on: () => noopSocket,
   off: () => noopSocket,
   emit: () => noopSocket,
-  disconnect: () => {},
+  disconnect: () => { },
 };
 
 export function getSocket() {

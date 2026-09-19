@@ -104,11 +104,7 @@ function emitToRooms(rooms, event, data) {
   if (ioInstance && Array.isArray(rooms) && rooms.length > 0) {
     const valid = rooms.filter(Boolean).map((r) => r.toString());
     if (valid.length > 0) {
-      let b = ioInstance;
-      valid.forEach((r) => {
-        b = b.to(r);
-      });
-      b.emit(event, data);
+      ioInstance.to(valid).emit(event, data);
     }
   }
 }
