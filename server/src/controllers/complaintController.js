@@ -118,7 +118,9 @@ exports.getComplaints = async (req, res) => {
       query.tenantId = req.user._id;
     }
 
-    if (status && status !== 'All') {
+    if (status === 'Active' || status === '!Resolved' || status === 'Pending,In Progress') {
+      query.status = { $ne: 'Resolved' };
+    } else if (status && status !== 'All') {
       query.status = status;
     }
 

@@ -780,7 +780,10 @@ export default function Dashboard() {
                   <button
                     key={tab.id}
                     type="button"
-                    onClick={() => setSelectedStatus(tab.id)}
+                    onClick={() => {
+                      setSelectedStatus(tab.id);
+                      if (tab.id === 'All') setSelectedPriority('All');
+                    }}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',

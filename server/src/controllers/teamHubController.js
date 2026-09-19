@@ -136,6 +136,11 @@ exports.sendMessage = async (req, res) => {
       createdAt: new Date().toISOString(),
     };
 
+    if (attachedTaskId) {
+      const taskDoc = await require('../models/TeamHub').StaffTask.findById(attachedTaskId).lean();
+      populated.attachedTask = taskDoc || null;
+    }
+
     // 1. INSTANT WEBSOCKET BROADCAST (<1ms):
     // Broadcast immediately to PG room and mentioned users so recipient receives the message in true milliseconds
     const emitToPG = req.app.get('emitToPG');
@@ -158,15 +163,13 @@ exports.sendMessage = async (req, res) => {
       });
     }
 
-    // 2. Persist to Database asynchronously
-    await msg.save();
+    // 2. Respond immediately to the client (<1ms) so network tab latency drops to bare minimum ping
+    res.status(201).json({ success: true, message: populated });
 
-    if (attachedTaskId) {
-      const taskDoc = await require('../models/TeamHub').StaffTask.findById(attachedTaskId).lean();
-      populated.attachedTask = taskDoc || null;
-    }
-
-    return res.status(201).json({ success: true, message: populated });
+    // 3. Persist to MongoDB in background without blocking HTTP response
+    msg.save().catch((err) => {
+      console.error('Background message save error:', err);
+    });
   } catch (error) {
     console.error('sendMessage error:', error);
     return res.status(500).json({ success: false, message: error.message || 'Server error' });

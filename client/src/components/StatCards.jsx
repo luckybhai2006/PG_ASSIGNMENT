@@ -66,7 +66,7 @@ export default function StatCards({ stats, onFilterStatus, onFilterPriority, act
       color: '#dc2626',
       bg: '#fef2f2',
       priority: 'Urgent',
-      status: 'All', // Show urgent tickets across pending & in-progress
+      status: '!Resolved', // Show active urgent tickets across pending & in-progress (excludes resolved)
       isHero: isStaff, // Full width on mobile for staff view to maintain 2-col balance
     },
   ];
@@ -130,18 +130,28 @@ export default function StatCards({ stats, onFilterStatus, onFilterPriority, act
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = item.priority 
-            ? activePriority === item.priority 
+            ? activePriority === item.priority && (activeStatus === item.status || activeStatus === '!Resolved')
             : (!activePriority || activePriority === 'All') && activeStatus === item.status;
 
           const handleClick = () => {
             if (item.isAction && item.onClick) {
               item.onClick();
             } else if (item.priority) {
-              if (onFilterPriority) onFilterPriority(item.priority);
-              if (onFilterStatus) onFilterStatus('All');
+              if (isActive) {
+                if (onFilterPriority) onFilterPriority('All');
+                if (onFilterStatus) onFilterStatus('All');
+              } else {
+                if (onFilterPriority) onFilterPriority(item.priority);
+                if (onFilterStatus) onFilterStatus(item.status || '!Resolved');
+              }
             } else if (onFilterStatus && item.status) {
-              if (onFilterPriority) onFilterPriority('All');
-              onFilterStatus(item.status);
+              if (isActive && item.status !== 'All') {
+                if (onFilterPriority) onFilterPriority('All');
+                onFilterStatus('All');
+              } else {
+                if (onFilterPriority) onFilterPriority('All');
+                onFilterStatus(item.status);
+              }
             }
           };
 

@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+// In-memory cache for validated users (30s TTL) to eliminate MongoDB query overhead on every request
+const userAuthCache = new Map();
+
 // Protect routes with JWT verification
 const protect = async (req, res, next) => {
   let token;
@@ -24,13 +27,26 @@ const protect = async (req, res, next) => {
       token,
       process.env.JWT_SECRET || 'pg_complaint_management_secret_key_2026_super_secure'
     );
-    const user = await User.findById(decoded.id).select('-password').lean();
 
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'User belonging to this token no longer exists',
-      });
+    const now = Date.now();
+    const cached = userAuthCache.get(decoded.id);
+    let user;
+
+    if (cached && now - cached.timestamp < 30000) {
+      user = cached.user;
+    } else {
+      user = await User.findById(decoded.id).select('-password').lean();
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'User belonging to this token no longer exists',
+        });
+      }
+      userAuthCache.set(decoded.id, { user, timestamp: now });
+      if (userAuthCache.size > 1000) {
+        const oldestKey = userAuthCache.keys().next().value;
+        userAuthCache.delete(oldestKey);
+      }
     }
 
     req.user = user;
