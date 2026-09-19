@@ -49,7 +49,7 @@ let homeDataCache = {
 
 export default function Dashboard() {
   const { user, pg, myPGs, needsInviteAcceptance, needsTenantApproval, loading: authLoading } = useAuth();
-  const { showToast } = useToast();
+  const { showToast, removeToastsByGroupKey } = useToast();
 
   const currentPg = pg || (myPGs && myPGs[0]) || null;
   const activePgId = currentPg?._id || user?.pgId?._id || user?.pgId || '';
@@ -89,7 +89,10 @@ export default function Dashboard() {
   const isTeamDrawerOpenRef = useRef(isTeamDrawerOpen);
   useEffect(() => {
     isTeamDrawerOpenRef.current = isTeamDrawerOpen;
-  }, [isTeamDrawerOpen]);
+    if (isTeamDrawerOpen) {
+      removeToastsByGroupKey?.('team_chat');
+    }
+  }, [isTeamDrawerOpen, removeToastsByGroupKey]);
 
   const [pendingTasksCount, setPendingTasksCount] = useState(0);
   const isFetchingTasksCountRef = useRef(false);
@@ -160,6 +163,9 @@ export default function Dashboard() {
             message: data.message || `Manager assigned you: "${task.title}"`,
             type: 'info',
             duration: 5000,
+            onClick: () => {
+              setIsTeamDrawerOpen(true);
+            },
           });
         }
       }
@@ -184,6 +190,9 @@ export default function Dashboard() {
           message: data.message || `Task "${task.title}" was marked as Done!`,
           type: 'success',
           duration: 5000,
+          onClick: () => {
+            setIsTeamDrawerOpen(true);
+          },
         });
       }
     };
@@ -205,10 +214,17 @@ export default function Dashboard() {
               : 'Staff';
         playNotificationChime();
         showToast({
-          title: `💬 Message from ${senderName} (${senderRole})`,
-          message: msg.text?.length > 70 ? msg.text.slice(0, 70) + '...' : msg.text,
-          type: 'info',
-          duration: 4500,
+          groupKey: 'team_chat',
+          title: senderName,
+          subtitle: senderRole,
+          senderName,
+          senderRole,
+          message: msg.text || '',
+          type: 'chat',
+          duration: 7000,
+          onClick: () => {
+            setIsTeamDrawerOpen(true);
+          },
         });
       }
     };
@@ -293,10 +309,17 @@ export default function Dashboard() {
                     : 'Staff';
               playNotificationChime();
               showToast({
-                title: `💬 Message from ${senderName} (${senderRole})`,
-                message: msg.text?.length > 70 ? msg.text.slice(0, 70) + '...' : msg.text,
-                type: 'info',
-                duration: 5000,
+                groupKey: 'team_chat',
+                title: senderName,
+                subtitle: senderRole,
+                senderName,
+                senderRole,
+                message: msg.text || '',
+                type: 'chat',
+                duration: 7000,
+                onClick: () => {
+                  setIsTeamDrawerOpen(true);
+                },
               });
             }
           }
@@ -323,6 +346,9 @@ export default function Dashboard() {
                   message: `Manager assigned you: "${t.title}"`,
                   type: 'info',
                   duration: 5000,
+                  onClick: () => {
+                    setIsTeamDrawerOpen(true);
+                  },
                 });
               }
             }
@@ -340,6 +366,9 @@ export default function Dashboard() {
                       message: `Task "${t.title}" was marked as Done!`,
                       type: 'success',
                       duration: 5000,
+                      onClick: () => {
+                        setIsTeamDrawerOpen(true);
+                      },
                     });
                   }
                 }
