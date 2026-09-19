@@ -135,6 +135,9 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat', pg: p
 
     const handleNewMessage = (msg) => {
       if (!msg) return;
+      if (msg.createdAt) {
+        lastChatTimestampRef.current = msg.createdAt;
+      }
       const myId = (user?._id || user?.id)?.toString();
       const msgSenderId = (msg.sender?._id || msg.sender)?.toString();
       if (msgSenderId && msgSenderId !== myId) {
@@ -255,7 +258,7 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat', pg: p
       } finally {
         isPolling = false;
       }
-    }, 2400);
+    }, 1000);
 
     return () => clearInterval(pollInterval);
   }, [isOpen, activeTab, activePgId, user?._id, user?.id, user?.role]);

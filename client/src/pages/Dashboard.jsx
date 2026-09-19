@@ -202,6 +202,9 @@ export default function Dashboard() {
       if (!msg || !msg._id) return;
       if (isDuplicateEvent('msg_' + msg._id)) return;
 
+      if (msg?._id) {
+        knownMsgIdsRef.current.add(msg._id.toString());
+      }
       const senderId = (msg.sender?._id || msg.sender)?.toString();
       // Only notify if sent by someone else AND drawer is currently closed
       if (senderId !== myId && !isTeamDrawerOpenRef.current) {
@@ -386,7 +389,7 @@ export default function Dashboard() {
     };
 
     pollLiveUpdates();
-    const interval = setInterval(pollLiveUpdates, 3000);
+    const interval = setInterval(pollLiveUpdates, 1200);
 
     return () => clearInterval(interval);
   }, [authLoading, user, pg?._id, user?.pgId, showToast, isDuplicateEvent]);

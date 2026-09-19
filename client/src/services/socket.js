@@ -40,11 +40,11 @@ export function initSocket() {
   try {
     socket = io(SOCKET_URL, {
       auth: { token },
-      transports: ['polling', 'websocket'],
+      transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 3,
-      reconnectionDelay: 2000,
-      timeout: 8000,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1500,
+      timeout: 10000,
     });
 
     socket.on('connect_error', () => {
