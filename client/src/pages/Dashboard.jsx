@@ -141,9 +141,13 @@ export default function Dashboard() {
     if (!socket || !user || user.role === 'tenant') return;
 
     const activePgId = pg?._id || user?.pgId?._id || user?.pgId;
-    if (activePgId) {
-      socket.emit('join_pg', activePgId);
+    const joinRoom = () => {
+      if (activePgId) socket.emit('join_pg', activePgId);
+    };
+    if (socket.connected) {
+      joinRoom();
     }
+    socket.on('connect', joinRoom);
 
     const myId = (user._id || user.id)?.toString();
 
@@ -238,6 +242,7 @@ export default function Dashboard() {
     socket.on('TEAM_MESSAGE_RECEIVED', handleNewMessage);
 
     return () => {
+      socket.off('connect', joinRoom);
       socket.off('TASK_ASSIGNED', handleTaskAssigned);
       socket.off('TASK_STATUS_UPDATED', handleTaskUpdated);
       socket.off('TASK_COMPLETED', handleTaskCompleted);

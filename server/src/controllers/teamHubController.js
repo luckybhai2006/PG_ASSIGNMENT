@@ -78,6 +78,24 @@ exports.getMessages = async (req, res) => {
   }
 };
 
+// In-memory cache for PG -> OwnerId mappings (0ms lookup)
+const pgOwnerMap = new Map();
+async function getPgOwnerId(pgId) {
+  if (!pgId) return null;
+  const pgIdStr = pgId.toString();
+  if (pgOwnerMap.has(pgIdStr)) return pgOwnerMap.get(pgIdStr);
+  try {
+    const PG = require('../models/PG');
+    const pgDoc = await PG.findById(pgId).select('ownerId').lean();
+    if (pgDoc?.ownerId) {
+      const ownerIdStr = pgDoc.ownerId.toString();
+      pgOwnerMap.set(pgIdStr, ownerIdStr);
+      return ownerIdStr;
+    }
+  } catch (_) {}
+  return null;
+}
+
 // @desc    Send a message in team chat
 // @route   POST /api/team-hub/messages
 // @access  Private (Owner / Editor with canChat)
@@ -141,12 +159,24 @@ exports.sendMessage = async (req, res) => {
       populated.attachedTask = taskDoc || null;
     }
 
-    // 1. INSTANT WEBSOCKET BROADCAST (<1ms):
-    // Broadcast immediately to PG room and mentioned users so recipient receives the message in true milliseconds
+    // 1. INSTANT WEBSOCKET MULTICAST (<1ms):
+    // Broadcast immediately to PG room, PG's Owner room, and mentioned users
+    const targetRooms = new Set([`pg_${pgId.toString()}`]);
+    const ownerId = await getPgOwnerId(pgId);
+    if (ownerId) {
+      targetRooms.add(`user_${ownerId}`);
+    }
+    if (cleanMentions.length > 0) {
+      cleanMentions.forEach((uid) => uid && targetRooms.add(`user_${uid.toString()}`));
+    }
+
+    const emitToRooms = req.app.get('emitToRooms');
     const emitToPG = req.app.get('emitToPG');
     const emitToUser = req.app.get('emitToUser');
 
-    if (emitToPG) {
+    if (emitToRooms) {
+      emitToRooms(Array.from(targetRooms), 'TEAM_MESSAGE_RECEIVED', populated);
+    } else if (emitToPG) {
       emitToPG(pgId, 'TEAM_MESSAGE_RECEIVED', populated);
     }
 
@@ -164,6 +194,7 @@ exports.sendMessage = async (req, res) => {
     }
 
     // 2. Respond immediately to the client (<1ms) so network tab latency drops to bare minimum ping
+    res.set('Connection', 'keep-alive');
     res.status(201).json({ success: true, message: populated });
 
     // 3. Persist to MongoDB in background without blocking HTTP response

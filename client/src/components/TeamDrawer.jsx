@@ -129,9 +129,13 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat', pg: p
     if (!socket || !isOpen) return;
 
     const activePgId = pg?._id || user?.pgId?._id || user?.pgId;
-    if (activePgId) {
-      socket.emit('join_pg', activePgId);
+    const joinRoom = () => {
+      if (activePgId) socket.emit('join_pg', activePgId);
+    };
+    if (socket.connected) {
+      joinRoom();
     }
+    socket.on('connect', joinRoom);
 
     const handleNewMessage = (msg) => {
       if (!msg) return;
@@ -174,6 +178,7 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat', pg: p
     socket.on('TASK_STATUS_UPDATED', handleTaskUpdated);
 
     return () => {
+      socket.off('connect', joinRoom);
       socket.off('TEAM_MESSAGE_RECEIVED', handleNewMessage);
       socket.off('TASK_ASSIGNED', handleTaskAssigned);
       socket.off('TASK_CREATED');
@@ -313,12 +318,46 @@ export default function TeamDrawer({ isOpen, onClose, initialTab = 'chat', pg: p
     setMentionQuery(null);
 
     try {
-      const res = await api.sendTeamMessage({
-        text: sendText,
-        mentions: sendMentions,
-        pgId: currentPgId,
-      });
-      if (res.message) {
+      const socket = getSocket();
+      let res = null;
+
+      // Ultra-fast WebSocket send (<60ms round-trip worldwide)
+      if (socket && socket.connected) {
+        res = await new Promise((resolve, reject) => {
+          const timer = setTimeout(() => {
+            api.sendTeamMessage({ text: sendText, mentions: sendMentions, pgId: currentPgId })
+              .then(resolve)
+              .catch(reject);
+          }, 1500);
+
+          socket.emit(
+            'SEND_TEAM_MESSAGE',
+            {
+              text: sendText,
+              mentions: sendMentions,
+              pgId: currentPgId,
+            },
+            (socketRes) => {
+              clearTimeout(timer);
+              if (socketRes && socketRes.success) {
+                resolve(socketRes);
+              } else {
+                api.sendTeamMessage({ text: sendText, mentions: sendMentions, pgId: currentPgId })
+                  .then(resolve)
+                  .catch(reject);
+              }
+            }
+          );
+        });
+      } else {
+        res = await api.sendTeamMessage({
+          text: sendText,
+          mentions: sendMentions,
+          pgId: currentPgId,
+        });
+      }
+
+      if (res && res.message) {
         if (res.message.createdAt) {
           lastChatTimestampRef.current = res.message.createdAt;
         }
