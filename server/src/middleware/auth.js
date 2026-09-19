@@ -24,7 +24,7 @@ const protect = async (req, res, next) => {
       token,
       process.env.JWT_SECRET || 'pg_complaint_management_secret_key_2026_super_secure'
     );
-    const user = await User.findById(decoded.id).select('-password');
+    const user = await User.findById(decoded.id).select('-password').lean();
 
     if (!user) {
       return res.status(401).json({

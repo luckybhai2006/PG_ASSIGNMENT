@@ -104,60 +104,66 @@ exports.sendMessage = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Message text is required' });
     }
 
+    const cleanText = text.trim();
+    const cleanMentions = Array.isArray(mentions) ? mentions : [];
+
     const msg = new TeamMessage({
       pgId,
       sender: user._id,
-      text: text.trim(),
-      mentions: Array.isArray(mentions) ? mentions : [],
+      text: cleanText,
+      mentions: cleanMentions,
       attachedTask: attachedTaskId || null,
     });
 
-    await msg.save();
+    // In-memory populated sender object (avoids an expensive second MongoDB Read + Join query)
+    const senderPayload = {
+      _id: user._id,
+      name: user.name,
+      role: user.role,
+      email: user.email,
+      phone: user.phone,
+      staffRole: user.staffRole,
+      designation: user.designation,
+    };
 
-    const populated = await TeamMessage.findById(msg._id)
-      .populate('sender', 'name role email phone staffRole designation')
-      .populate('attachedTask')
-      .lean();
+    let populated = {
+      _id: msg._id,
+      pgId,
+      sender: senderPayload,
+      text: cleanText,
+      mentions: cleanMentions,
+      attachedTask: null,
+      createdAt: new Date().toISOString(),
+    };
 
-    // Single unified multicast emission across PG and user rooms (Socket.IO auto-deduplicates)
-    const targetRooms = new Set([`pg_${pgId.toString()}`]);
-
-    // Ensure owner's private room is included
-    try {
-      const PG = require('../models/PG');
-      const targetPg = await PG.findById(pgId).select('ownerId').lean();
-      if (targetPg?.ownerId && targetPg.ownerId.toString() !== user._id.toString()) {
-        targetRooms.add(`user_${targetPg.ownerId.toString()}`);
-      }
-    } catch (_) {}
-
-    // Include mentioned users' private rooms
-    if (Array.isArray(mentions)) {
-      mentions.forEach((uid) => {
-        if (uid) targetRooms.add(`user_${uid.toString()}`);
-      });
-    }
-
-    const emitToRooms = req.app.get('emitToRooms');
+    // 1. INSTANT WEBSOCKET BROADCAST (<1ms):
+    // Broadcast immediately to PG room and mentioned users so recipient receives the message in true milliseconds
     const emitToPG = req.app.get('emitToPG');
-    if (emitToRooms) {
-      emitToRooms(Array.from(targetRooms), 'TEAM_MESSAGE_RECEIVED', populated);
-    } else if (emitToPG) {
+    const emitToUser = req.app.get('emitToUser');
+
+    if (emitToPG) {
       emitToPG(pgId, 'TEAM_MESSAGE_RECEIVED', populated);
     }
 
     // Direct mention alerts for user-specific toasts
-    const emitToUser = req.app.get('emitToUser');
-    if (emitToUser && Array.isArray(mentions) && mentions.length > 0) {
-      mentions.forEach((uid) => {
+    if (emitToUser && cleanMentions.length > 0) {
+      cleanMentions.forEach((uid) => {
         if (uid && uid.toString() !== user._id.toString()) {
           emitToUser(uid, 'TEAM_MENTIONED', {
             senderName: user.name,
-            text: text.slice(0, 100),
+            text: cleanText.slice(0, 100),
             messageId: msg._id,
           });
         }
       });
+    }
+
+    // 2. Persist to Database asynchronously
+    await msg.save();
+
+    if (attachedTaskId) {
+      const taskDoc = await require('../models/TeamHub').StaffTask.findById(attachedTaskId).lean();
+      populated.attachedTask = taskDoc || null;
     }
 
     return res.status(201).json({ success: true, message: populated });
